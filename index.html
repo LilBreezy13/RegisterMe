@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Enrollment Portal</title>
+
+<style>
+
+html{
+scroll-behavior:smooth;
+}
+
+body{
+font-family:Arial;
+background:#eef2f7;
+display:flex;
+justify-content:center;
+align-items:flex-start;
+min-height:100vh;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:25px;
+max-width:420px;
+width:100%;
+border-radius:12px;
+box-shadow:0 10px 40px rgba(0,0,0,0.15);
+}
+
+h3{
+text-align:center;
+margin-bottom:20px;
+}
+
+input,select{
+width:100%;
+padding:12px;
+margin:6px 0;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:16px;
+}
+
+button{
+width:100%;
+padding:12px;
+background:#0d1b66;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+margin-top:10px;
+font-size:16px;
+}
+
+button:disabled{
+background:gray;
+cursor:not-allowed;
+}
+
+.loader{
+display:none;
+margin:auto;
+border:4px solid #eee;
+border-top:4px solid #0d1b66;
+border-radius:50%;
+width:26px;
+height:26px;
+animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+
+#classArea{
+max-height:300px;
+overflow-y:auto;
+padding-right:4px;
+}
+
+.summary{
+background:#f7f7f7;
+padding:15px;
+border-radius:8px;
+margin-top:15px;
+font-size:14px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- LOGIN -->
+
+<div class="card" id="loginBox">
+
+<h3>Sales Rep Login</h3>
+
+<input id="repId" placeholder="Rep ID">
+<input id="repPin" type="password" placeholder="PIN">
+
+<button onclick="login()">Login</button>
+
+<div class="loader" id="loginLoader"></div>
+
+</div>
+
+
+
+<!-- MAIN APP -->
+
+<div class="card" id="appBox" style="display:none">
+
+<h3>School Enrollment</h3>
+
+<input id="schoolName" placeholder="School Name">
+
+<select id="region">
+<option value="">Select Region</option>
+<option>Greater Accra</option>
+<option>Ashanti</option>
+<option>Eastern</option>
+<option>Central</option>
+<option>Volta</option>
+<option>Western</option>
+<option>Northern</option>
+<option>Upper East</option>
+<option>Upper West</option>
+</select>
+
+<input id="location" placeholder="Town / District / Location">
+
+<input
+type="tel"
+id="phone"
+maxlength="10"
+placeholder="School Phone"
+inputmode="numeric"
+>
+
+<select id="language">
+<option value="">Ghanaian Language</option>
+<option>Akuapem Twi</option>
+<option>Asante Twi</option>
+<option>Ewe</option>
+<option>Ga</option>
+<option>Dagbani</option>
+</select>
+
+<select id="french">
+<option value="No">French: No</option>
+<option value="Yes">French: Yes</option>
+</select>
+
+<select id="examType" onchange="toggleClasses()">
+<option value="">Exam Type</option>
+<option value="mock">Mock</option>
+<option value="terminal">Terminal</option>
+</select>
+
+<div id="classArea"></div>
+
+<button id="submitBtn" onclick="submitEnrollment()">Submit Enrollment</button>
+
+<div class="summary" id="summarySection" style="display:none">
+<h3>Bill Summary</h3>
+<div id="summaryText"></div>
+
+<button id="whatsappBtn">Send via WhatsApp</button>
+<button id="smsBtn">Send via SMS</button>
+
+</div>
+
+</div>
+
+
+
+<script>
+
+const API_URL="https://script.google.com/macros/s/AKfycbzzJiz5N_2Tin6Oe6UHgdivukT5i09sEx6ESa7wPD0cz5GePmJzb5U_FMEG3xmqBd3S0A/exec"
+
+
+
+async function login(){
+
+let loader=document.getElementById("loginLoader")
+loader.style.display="block"
+
+let id=document.getElementById("repId").value
+let pin=document.getElementById("repPin").value
+
+try{
+
+let res=await fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"login",
+repId:id,
+pin:pin
+})
+})
+
+let data=await res.json()
+
+loader.style.display="none"
+
+if(data.status==="ok"){
+
+localStorage.setItem("repId",id)
+
+document.getElementById("loginBox").style.display="none"
+document.getElementById("appBox").style.display="block"
+
+}else{
+
+alert("Invalid Rep ID or PIN")
+
+}
+
+}catch(e){
+
+loader.style.display="none"
+alert("Connection error")
+
+}
+
+}
+
+
+
+function toggleClasses(){
+
+let type=document.getElementById("examType").value
+let area=document.getElementById("classArea")
+
+area.innerHTML=""
+
+if(type==="mock"){
+
+area.innerHTML=`
+<input type="number" id="b9" placeholder="Basic 9 Enrollment">
+`
+
+}
+
+if(type==="terminal"){
+
+area.innerHTML=`
+
+<input type="number" id="nursery" placeholder="Nursery">
+
+<input type="number" id="kg1" placeholder="KG 1">
+<input type="number" id="kg2" placeholder="KG 2">
+
+<input type="number" id="b1" placeholder="Basic 1">
+<input type="number" id="b2" placeholder="Basic 2">
+<input type="number" id="b3" placeholder="Basic 3">
+
+<input type="number" id="b4" placeholder="Basic 4">
+<input type="number" id="b5" placeholder="Basic 5">
+<input type="number" id="b6" placeholder="Basic 6">
+
+<input type="number" id="b7" placeholder="Basic 7">
+<input type="number" id="b8" placeholder="Basic 8">
+
+<input type="number" id="b9" placeholder="Basic 9">
+
+`
+
+}
+
+}
+
+
+
+function calculateBill(e){
+
+let categories={}
+let total=0
+
+categories["Preschool"]=((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*8
+
+categories["Lower Primary"]=((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*9
+
+categories["Upper Primary"]=((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*9
+
+categories["Basic 7 & 8"]=((+e.b7||0)+(+e.b8||0))*15
+
+categories["Basic 9"]=((+e.b9||0))*20
+
+for(let k in categories){ total+=categories[k] }
+
+total+=20
+
+return {total,categories}
+
+}
+
+
+
+function generateID(){
+return "ENR-"+Date.now()+"-"+Math.floor(Math.random()*1000)
+}
+
+
+
+function validatePhone(phone){
+return /^0(2[0-9]|5[0-9])[0-9]{7}$/.test(phone)
+}
+
+
+
+async function submitEnrollment(){
+
+let btn=document.getElementById("submitBtn")
+
+let repId=localStorage.getItem("repId")
+
+let school=document.getElementById("schoolName").value
+let region=document.getElementById("region").value
+let location=document.getElementById("location").value
+let phone=document.getElementById("phone").value
+let exam=document.getElementById("examType").value
+
+let language=document.getElementById("language").value
+let french=document.getElementById("french").value
+
+if(!school||!region||!location||!phone||!exam){
+
+alert("Please complete all fields")
+return
+
+}
+
+if(!validatePhone(phone)){
+alert("Invalid Ghana phone")
+return
+}
+
+
+
+let enrollments={}
+
+document.querySelectorAll("#classArea input").forEach(i=>{
+enrollments[i.id]=i.value||0
+})
+
+
+
+let bill=calculateBill(enrollments)
+let total=bill.total
+let categories=bill.categories
+
+
+
+let summary=""
+
+for(let k in categories){
+
+summary+=`${k}: GHS ${categories[k]}<br>`
+
+}
+
+summary+=`Delivery Fee: GHS 20<br><b>Total Bill: GHS ${total}</b>`
+
+
+
+document.getElementById("summaryText").innerHTML=summary
+document.getElementById("summarySection").style.display="block"
+
+
+
+let finalMessage=`School Name: ${school}
+
+`
+
+for(let k in categories){
+finalMessage+=`${k}: GHS ${categories[k]}\n`
+}
+
+finalMessage+=`Delivery Fee: GHS 20
+Total Bill: GHS ${total}
+
+Kindly pay through any of the momo lines
+0247448883 (Bacon Atsu Amengor)
+0248726958 (Best Brain Examinations Konsortium)
+
+Use school name as reference.`
+
+
+
+document.getElementById("whatsappBtn").onclick=()=>{
+window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(finalMessage)}`)
+}
+
+document.getElementById("smsBtn").onclick=()=>{
+window.open(`sms:?body=${encodeURIComponent(finalMessage)}`)
+}
+
+
+
+btn.disabled=true
+btn.innerText="Submitting..."
+
+
+let data={
+
+action:"submit",
+
+submissionId:generateID(),
+
+repId:repId,
+
+school:school,
+region:region,
+location:location,
+phone:phone,
+
+language:language,
+french:french,
+
+examType:exam,
+
+enrollments:enrollments,
+
+totalBill:total,
+
+date:new Date().toISOString()
+
+}
+
+
+
+try{
+
+await fetch(API_URL,{
+method:"POST",
+body:JSON.stringify(data)
+})
+
+alert("Enrollment Submitted")
+
+}catch(e){
+
+alert("Submission failed")
+
+}
+
+btn.disabled=false
+btn.innerText="Submit Enrollment"
+
+}
+
+</script>
+
+</body>
+</html>
