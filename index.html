@@ -3,377 +3,515 @@
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Enrollment Portal</title>
+
 <style>
+
 html{scroll-behavior:smooth;}
+
 body{
-  font-family:Arial;
-  background:#eef2f7;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  min-height:100vh;
-  padding:20px;
+font-family:Arial;
+background:#eef2f7;
+display:flex;
+justify-content:center;
+align-items:flex-start;
+min-height:100vh;
+padding:20px;
 }
 
 .card{
-  background:white;
-  padding:25px;
-  max-width:420px;
-  width:100%;
-  border-radius:12px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.12);
+background:white;
+padding:20px;
+max-width:420px;
+width:100%;
+border-radius:10px;
+box-shadow:0 4px 14px rgba(0,0,0,0.1);
 }
 
-h3{text-align:center;margin-bottom:20px;}
-
-input, select{
-  width:100%;
-  padding:14px;
-  margin:10px 0;
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-size:16px;
-  box-sizing:border-box;
+h3{
+text-align:center;
+margin-bottom:18px;
+font-weight:600;
 }
 
-input:focus, select:focus{
-  outline:none;
-  border-color:#0d1b66;
-  box-shadow:0 0 5px rgba(13,27,102,0.4);
+input,select{
+width:100%;
+padding:12px;
+margin:8px 0;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:15px;
+box-sizing:border-box;
+}
+
+input:focus,select:focus{
+outline:none;
+border-color:#0d1b66;
 }
 
 button{
-  width:100%;
-  padding:14px;
-  background:#0d1b66;
-  color:white;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  margin-top:12px;
-  font-size:16px;
-  transition:0.3s;
+width:100%;
+padding:13px;
+background:#0d1b66;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+margin-top:10px;
+font-size:15px;
 }
 
-button:hover:not(:disabled){
-  background:#13288e;
+button:hover{background:#162a8d;}
+
+.summary{
+background:#f7f7f7;
+padding:15px;
+border-radius:8px;
+margin-top:20px;
+font-size:14px;
 }
 
-button:disabled{
-  background:gray;
-  cursor:not-allowed;
+.summary div{margin-top:10px;}
+
+.shareBtns{margin-top:15px;}
+
+.whatsapp{background:#25D366;}
+.sms{background:#0d1b66;}
+
+#historyBox{display:none;margin-top:15px;}
+
+.history-item{
+background:#f1f3f6;
+padding:10px;
+border-radius:6px;
+margin-bottom:10px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+font-size:14px;
 }
 
-.loader{
-  display:none;
-  margin:auto;
-  border:4px solid #eee;
-  border-top:4px solid #0d1b66;
-  border-radius:50%;
-  width:26px;
-  height:26px;
-  animation:spin 1s linear infinite;
+.history-left{
+display:flex;
+flex-direction:column;
 }
 
-@keyframes spin{
-  0%{transform:rotate(0deg);}
-  100%{transform:rotate(360deg);}
+.history-time{
+font-size:11px;
+color:#777;
+}
+
+.edit-icon{
+cursor:pointer;
+font-size:16px;
 }
 
 #classArea{
-  max-height:300px;
-  overflow-y:auto;
-  padding-right:4px;
+max-height:280px;
+overflow-y:auto;
+padding-right:4px;
 }
 
-.summary{
-  background:#f7f7f7;
-  padding:15px;
-  border-radius:8px;
-  margin-top:15px;
-  font-size:14px;
+#toast{
+position:fixed;
+bottom:30px;
+left:50%;
+transform:translateX(-50%);
+background:#0d1b66;
+color:white;
+padding:14px 22px;
+border-radius:8px;
+font-size:14px;
+opacity:0;
+transition:.3s;
 }
 
-#historyBox{
-  display:none;
-  margin-top:15px;
-}
+#toast.show{opacity:1;}
 
-.history-item{
-  background:#f0f2f5;
-  padding:10px;
-  border-radius:6px;
-  margin-bottom:8px;
-}
 
-#addNewBtn{
-  display:none;
-  background:#28a745;
-  margin-top:10px;
-}
-
-#addNewBtn:hover{
-  background:#218838;
-}
-
-@media screen and (max-width:480px){
-  input, select, button{
-    margin:12px 0;
-    font-size:18px;
-    padding:16px;
-  }
+.edit-icon{
+cursor:pointer;
+font-size:14px;
+float:right;
+margin-left:10px;
 }
 </style>
 </head>
+
 <body>
 
 <div class="card" id="loginBox">
-  <h3>Sales Rep Login</h3>
-  <input id="repId" placeholder="Rep ID">
-  <input id="repPin" type="password" placeholder="PIN">
-  <button onclick="login()">Login</button>
-  <div class="loader" id="loginLoader"></div>
+
+<h3>Sales Rep Login</h3>
+
+<input id="repId" placeholder="Rep ID">
+<input id="repPin" type="password" placeholder="PIN">
+
+<button id="loginBtn" onclick="login()">Login</button>
+
 </div>
 
 <div class="card" id="appBox" style="display:none">
-  <h3>Register New School</h3>
 
-  <input id="schoolName" placeholder="School Name">
-  <select id="region">
-    <option value="">Select Region</option>
-    <option>Greater Accra</option>
-    <option>Ashanti</option>
-    <option>Eastern</option>
-    <option>Central</option>
-    <option>Volta</option>
-    <option>Western</option>
-    <option>Northern</option>
-    <option>Upper East</option>
-    <option>Upper West</option>
-    <option>Oti</option>
-  </select>
+<h3>Register School Enrollment</h3>
 
-  <input id="location" placeholder="Town / District / Location">
-  <input type="tel" id="phone" maxlength="10" placeholder="School Phone" inputmode="tel" pattern="[0-9]*">
+<div id="formArea">
 
-  <select id="language">
-    <option value="">Ghanaian Language</option>
-    <option>Asante Twi</option>
-    <option>Akuapem Twi</option>
-    <option>Ewe</option>
-    <option>Ga</option>
-    <option>Dagbani</option>
-    <option>Fante</option>
- 
-  </select>
+<input id="schoolName" placeholder="School Name">
 
-  <select id="french">
-    <option value="No">French: No</option>
-    <option value="Yes">French: Yes</option>
-  </select>
+<select id="region">
+<option value="">Select Region</option>
+<option>Greater Accra</option>
+<option>Ashanti</option>
+<option>Eastern</option>
+<option>Central</option>
+<option>Volta</option>
+<option>Western</option>
+<option>Northern</option>
+<option>Upper East</option>
+<option>Upper West</option>
+<option>Oti</option>
+</select>
 
-  <select id="examType" onchange="toggleClasses()">
-    <option value="">Exam Type</option>
-    <option value="mock">Mock</option>
-    <option value="terminal">Terminal</option>
-  </select>
+<input id="location" placeholder="Town / District">
 
-  <div id="classArea"></div>
+<input type="tel" id="phone" inputmode="numeric" maxlength="10" placeholder="School Phone">
 
-  <button id="submitBtn" onclick="submitEnrollment()">Submit Enrollment</button>
-  <button id="showHistoryBtn" onclick="toggleHistory()">Show History</button>
-  <button id="addNewBtn" onclick="clearForm()">Add New Enrollment</button>
+<select id="language">
+<option value="">Ghanaian Language</option>
+<option>Asante Twi</option>
+<option>Akuapem Twi</option>
+<option>Ewe</option>
+<option>Ga</option>
+<option>Dagbani</option>
+<option>Fante</option>
+</select>
 
-  <div class="summary" id="summarySection" style="display:none">
-    <h3>Bill Summary</h3>
-    <div id="summaryText"></div>
-  </div>
+<select id="french">
+<option value="No">French: No</option>
+<option value="Yes">French: Yes</option>
+</select>
 
-  <div id="historyBox">
-    <h3>Submitted Schools</h3>
-    <ul id="historyList"></ul>
-  </div>
+<select id="examType" onchange="toggleClasses()">
+<option value="">Exam Type</option>
+<option value="mock">Mock</option>
+<option value="terminal">Terminal</option>
+</select>
+
+<div id="classArea"></div>
+
+<button id="submitBtn" onclick="submitEnrollment()">Submit Enrollment</button>
+
+<button id="showHistoryBtn" onclick="toggleHistory()">Show History</button>
 
 </div>
 
+<button id="addNewBtn" onclick="reloadForm()" style="display:none">
+Add New School / Enrollment
+</button>
+
+<div id="summarySection" class="summary" style="display:none">
+
+<h3>Bill Summary</h3>
+
+<div id="summaryText"></div>
+
+<div class="shareBtns">
+<button class="whatsapp" onclick="shareWhatsApp()">Send Bill via WhatsApp</button>
+<button class="sms" onclick="shareSMS()">Send Bill via SMS</button>
+</div>
+
+</div>
+
+<div id="historyBox">
+<h3>Submitted Schools</h3>
+<ul id="historyList"></ul>
+</div>
+
+</div>
+
+<div id="toast"></div>
+
 <script>
+
 const API_URL="https://script.google.com/macros/s/AKfycbxLXNvdWCZCX9C6R4Sv-12shfiUMeJ85oGAa291jbnpxrvtUPt9HPNtDqo-cH0rTQGFug/exec";
 
-function login(){
-  const loader = document.getElementById("loginLoader");
-  loader.style.display="block";
-  let id = document.getElementById("repId").value;
-  let pin = document.getElementById("repPin").value;
-
-  fetch(API_URL, {
-    method:"POST",
-    body: JSON.stringify({action:"login", repId:id, pin:pin})
-  })
-  .then(res => res.json())
-  .then(data => {
-    loader.style.display="none";
-    if(data.status==="ok"){
-      localStorage.setItem("repId", id);
-      document.getElementById("loginBox").style.display="none";
-      document.getElementById("appBox").style.display="block";
-      loadHistory();
-    } else { alert("Invalid Rep ID or PIN"); }
-  })
-  .catch(()=> {loader.style.display="none"; alert("Connection error");});
+function showToast(msg){
+let t=document.getElementById("toast");
+t.innerText=msg;
+t.classList.add("show");
+setTimeout(()=>t.classList.remove("show"),2000);
 }
 
-// Classes
+async function login(){
+
+let btn=document.getElementById("loginBtn");
+btn.disabled=true;
+btn.innerText="Logging in...";
+
+try{
+
+let res=await fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"login",
+repId:repId.value,
+pin:repPin.value
+})
+});
+
+let data=await res.json();
+
+if(data.status==="ok"){
+
+localStorage.setItem("repId",repId.value);
+
+loginBox.style.display="none";
+appBox.style.display="block";
+
+loadHistory();
+
+showToast("Login successful");
+
+}else{
+showToast("Invalid login");
+}
+
+}catch{
+showToast("Connection error");
+}
+
+btn.disabled=false;
+btn.innerText="Login";
+
+}
+
 function toggleClasses(){
-  let type = document.getElementById("examType").value;
-  let area = document.getElementById("classArea");
-  area.innerHTML = "";
-  const classes=[
-    {id:"nursery", label:"Nursery"},
-    {id:"kg1", label:"KG 1"},
-    {id:"kg2", label:"KG 2"},
-    {id:"b1", label:"Basic 1"},
-    {id:"b2", label:"Basic 2"},
-    {id:"b3", label:"Basic 3"},
-    {id:"b4", label:"Basic 4"},
-    {id:"b5", label:"Basic 5"},
-    {id:"b6", label:"Basic 6"},
-    {id:"b7", label:"Basic 7"},
-    {id:"b8", label:"Basic 8"},
-    {id:"b9", label:"Basic 9"}
-  ];
-  if(type==="mock"){
-    area.innerHTML=`<input type="number" id="b9" placeholder="Basic 9 Enrollment" style="margin-bottom:6px;">`;
-  }
-  if(type==="terminal"){
-    classes.forEach(c=>{area.innerHTML+=`<input type="number" id="${c.id}" placeholder="${c.label}" style="margin-bottom:6px;">`;});
-  }
+
+let type=examType.value;
+let area=classArea;
+
+area.innerHTML="";
+
+const classes=[
+["nursery","Nursery"],
+["kg1","KG1"],
+["kg2","KG2"],
+["b1","Basic 1"],
+["b2","Basic 2"],
+["b3","Basic 3"],
+["b4","Basic 4"],
+["b5","Basic 5"],
+["b6","Basic 6"],
+["b7","Basic 7"],
+["b8","Basic 8"],
+["b9","Basic 9"]
+];
+
+if(type==="mock"){
+area.innerHTML=`<input type="number" id="b9" placeholder="Basic 9 Enrollment">`;
 }
 
-// Bill
+if(type==="terminal"){
+classes.forEach(c=>{
+area.innerHTML+=`<input type="number" id="${c[0]}" placeholder="${c[1]} Enrollment">`;
+});
+}
+
+}
+
 function calculateBill(e){
-  let categories={}, total=0;
-  categories["Preschool"]=((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*8;
-  categories["Lower Primary"]=((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*9;
-  categories["Upper Primary"]=((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*9;
-  categories["Basic 7 & 8"]=((+e.b7||0)+(+e.b8||0))*15;
-  categories["Basic 9"]=((+e.b9||0))*20;
-  for(let k in categories){total+=categories[k];}
-  total+=20;
-  return {categories,total};
+
+let total=0;
+let categories={};
+
+categories["Preschool"]=((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*8;
+categories["Lower Primary"]=((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*9;
+categories["Upper Primary"]=((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*9;
+categories["Basic 7 & 8"]=((+e.b7||0)+(+e.b8||0))*15;
+categories["Basic 9"]=((+e.b9||0))*20;
+
+for(let k in categories) total+=categories[k];
+
+total+=20;
+
+return{categories,total};
+
 }
 
-// Phone validation
-function validatePhone(phone){return /^0(2[0-9]|5[0-9])[0-9]{7}$/.test(phone);}
-
-// Submit
 async function submitEnrollment(){
-  let btn = document.getElementById("submitBtn");
-  let repId = localStorage.getItem("repId");
-  let school=document.getElementById("schoolName").value;
-  let region=document.getElementById("region").value;
-  let location=document.getElementById("location").value;
-  let phone=document.getElementById("phone").value;
-  let exam=document.getElementById("examType").value;
-  let language=document.getElementById("language").value;
-  let french=document.getElementById("french").value;
 
-  if(!school||!region||!location||!phone||!exam){alert("Please complete all fields"); return;}
-  if(!validatePhone(phone)){alert("Invalid Ghana phone"); return;}
+let btn=submitBtn;
 
-  let enrollments={};
-  document.querySelectorAll("#classArea input").forEach(i=>enrollments[i.id]=i.value||0);
-  let bill = calculateBill(enrollments);
+btn.disabled=true;
+btn.innerText="Submitting...";
 
-  // Display summary
-  let summaryHtml="";
-  for(let k in bill.categories){summaryHtml+=`${k}: GHS ${bill.categories[k]}<br>`;}
-  summaryHtml+=`Delivery Fee: GHS 20<br><b>Total Bill: GHS ${bill.total}</b>`;
-  document.getElementById("summaryText").innerHTML=summaryHtml;
-  document.getElementById("summarySection").style.display="block";
+let school=schoolName.value;
+let regionVal=region.value;
+// let locationVal=location.value;
+let locationVal = document.getElementById("location").value;
+let phoneVal=phone.value;
+let exam=examType.value;
+let languageVal=language.value;
+let frenchVal=french.value;
 
-  // History & localStorage
-  let submissionId = localStorage.getItem("submissionId") || generateID();
-  let data={submissionId, repId, school, region, location, phone, language, french, examType:exam, enrollments, totalBill: bill.total, date:new Date().toISOString()};
-  saveHistory(data);
+let enrollments={};
+document.querySelectorAll("#classArea input").forEach(i=>{
+enrollments[i.id]=i.value||0;
+});
 
-  btn.disabled=true;
-  try{
-    await fetch(API_URL,{method:"POST",body:JSON.stringify({...data, action:"submit"})});
-    alert("Enrollment Submitted");
-    document.getElementById("addNewBtn").style.display="block";
-    loadHistory();
-  }catch(e){alert("Submission failed");}
-  btn.disabled=false;
+let bill=calculateBill(enrollments);
+
+let text="";
+
+for(let k in bill.categories){
+text+=`<div>${k}: GHS ${bill.categories[k]}</div>`;
 }
 
-// Generate ID
-function generateID(){return "ENR-"+Date.now()+"-"+Math.floor(Math.random()*1000);}
+text+=`<div>Delivery Fee: GHS 20</div>`;
+text+=`<div><b>Total Bill: GHS ${bill.total}</b></div>`;
 
-// Clear form
-function clearForm(){
-  document.getElementById("schoolName").value="";
-  document.getElementById("region").value="";
-  document.getElementById("location").value="";
-  document.getElementById("phone").value="";
-  document.getElementById("language").value="";
-  document.getElementById("french").value="";
-  document.getElementById("examType").value="";
-  document.getElementById("classArea").innerHTML="";
-  document.getElementById("summarySection").style.display="none";
-  document.getElementById("addNewBtn").style.display="none";
-  localStorage.removeItem("submissionId");
+summaryText.innerHTML=text;
+
+summarySection.style.display="block";
+
+historyBox.style.display="none";
+
+formArea.style.display="none";
+showHistoryBtn.style.display="none";
+addNewBtn.style.display="block";
+
+let submissionId=Date.now();
+
+let history=JSON.parse(localStorage.getItem("history")||"[]");
+
+let record={
+submissionId,
+school,
+region:regionVal,
+location:locationVal,
+phone:phoneVal,
+language:languageVal,
+french:frenchVal,
+examType:exam,
+enrollments,
+time:new Date().toLocaleString()
+};
+
+history.push(record);
+localStorage.setItem("history",JSON.stringify(history));
+
+loadHistory();
+
+await fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"submit",
+repId:localStorage.getItem("repId"),
+submissionId,
+school,
+region:regionVal,
+location:locationVal,
+phone:phoneVal,
+language:languageVal,
+french:frenchVal,
+examType:exam,
+enrollments,
+totalBill:bill.total
+})
+});
+
+showToast("Enrollment submitted");
+
+btn.disabled=false;
+btn.innerText="Submit Enrollment";
+
 }
 
-// Save history to localStorage
-function saveHistory(data){
-  let history = JSON.parse(localStorage.getItem("history")||"[]");
-  // Remove existing submission with same ID
-  history = history.filter(h=>h.submissionId!==data.submissionId);
-  history.push(data);
-  localStorage.setItem("history", JSON.stringify(history));
+function reloadForm(){
+
+summarySection.style.display="none";
+historyBox.style.display="none";
+
+formArea.style.display="block";
+showHistoryBtn.style.display="block";
+addNewBtn.style.display="none";
+
+document.querySelectorAll("input").forEach(i=>i.value="");
+
+classArea.innerHTML="";
+
 }
 
-// Load history
-function loadHistory(){
-  const list = document.getElementById("historyList");
-  list.innerHTML="";
-  let history = JSON.parse(localStorage.getItem("history")||"[]").reverse();
-  history.forEach(data=>{
-    const li = document.createElement("li");
-    li.className="history-item";
-    li.innerHTML = `
-      <b>${data.school}</b> - ${data.region} - ${data.examType}<br>
-      <button onclick='editSchool(${JSON.stringify(data)})'>Edit</button>
-    `;
-    list.appendChild(li);
-  });
-}
-
-// Edit school
-function editSchool(data){
-  localStorage.setItem("submissionId", data.submissionId);
-  document.getElementById("schoolName").value=data.school;
-  document.getElementById("region").value=data.region;
-  document.getElementById("location").value=data.location;
-  document.getElementById("phone").value=data.phone;
-  document.getElementById("language").value=data.language;
-  document.getElementById("french").value=data.french;
-  document.getElementById("examType").value=data.examType;
-  toggleClasses();
-  setTimeout(()=>{
-    for(let k in data.enrollments){
-      let el = document.getElementById(k);
-      if(el) el.value=data.enrollments[k];
-    }
-  },200);
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-// Toggle history display
 function toggleHistory(){
-  const box = document.getElementById("historyBox");
-  box.style.display = box.style.display==="block" ? "none":"block";
+
+historyBox.style.display=
+historyBox.style.display==="block"?"none":"block";
+
 }
+
+function loadHistory(){
+
+let list=historyList;
+
+list.innerHTML="";
+
+let history=JSON.parse(localStorage.getItem("history")||"[]");
+
+history.reverse().forEach(d=>{
+
+let li=document.createElement("li");
+
+li.className="history-item";
+
+li.innerHTML=`
+<b>${d.school}</b> - ${d.region}<br>
+<span class="edit-icon" onclick='editSchool(${JSON.stringify(d)})'>✏️</span>
+`;
+
+list.appendChild(li);
+
+});
+
+}
+
+function editSchool(data){
+
+historyBox.style.display="none";
+
+formArea.style.display="block";
+
+schoolName.value=data.school;
+region.value=data.region;
+location.value=data.location;
+phone.value=data.phone;
+language.value=data.language;
+french.value=data.french;
+examType.value=data.examType;
+
+toggleClasses();
+
+setTimeout(()=>{
+for(let k in data.enrollments){
+let el=document.getElementById(k);
+if(el) el.value=data.enrollments[k];
+}
+},200);
+
+window.scrollTo({top:0,behavior:"smooth"});
+
+}
+
+function shareWhatsApp(){
+let text=summaryText.innerText;
+window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+}
+
+function shareSMS(){
+let text=summaryText.innerText;
+window.open(`sms:?body=${encodeURIComponent(text)}`);
+}
+
 </script>
+
 </body>
 </html>
