@@ -5,134 +5,117 @@
 <title>Enrollment Portal</title>
 
 <style>
-
 html{scroll-behavior:smooth;}
-
 body{
-font-family:Arial;
-background:#eef2f7;
-display:flex;
-justify-content:center;
-align-items:flex-start;
-min-height:100vh;
-padding:20px;
+  font-family:Arial;
+  background:#eef2f7;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  padding:0;
+  margin:0;
+  overflow-x:hidden;
 }
-
 .card{
-background:white;
-padding:20px;
-max-width:420px;
-width:100%;
-border-radius:10px;
-box-shadow:0 4px 14px rgba(0,0,0,0.1);
+  background:white;
+  padding:20px;
+  max-width:420px;
+  width:100%;
+  border-radius:10px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.1);
+  box-sizing:border-box;
 }
-
-h3{
-text-align:center;
-margin-bottom:18px;
-font-weight:600;
-}
-
+h3{ text-align:center; margin-bottom:18px; font-weight:600; }
 input,select{
-width:100%;
-padding:12px;
-margin:8px 0;
-border-radius:8px;
-border:1px solid #ccc;
-font-size:15px;
-box-sizing:border-box;
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:15px;
+  box-sizing:border-box;
 }
-
 input:focus,select:focus{
-outline:none;
-border-color:#0d1b66;
+  outline:none;
+  border-color:#0d1b66;
 }
-
 button{
-width:100%;
-padding:13px;
-background:#0d1b66;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
-margin-top:10px;
-font-size:15px;
+  width:100%;
+  padding:13px;
+  background:#0d1b66;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  margin-top:10px;
+  font-size:15px;
 }
-
 button:hover{background:#162a8d;}
+button:disabled{background:gray;cursor:not-allowed;}
 
 .summary{
-background:#f7f7f7;
-padding:15px;
-border-radius:8px;
-margin-top:20px;
-font-size:14px;
+  background:#f7f7f7;
+  padding:15px;
+  border-radius:8px;
+  margin-top:20px;
+  font-size:14px;
 }
-
 .summary div{margin-top:10px;}
-
 .shareBtns{margin-top:15px;}
-
 .whatsapp{background:#25D366;}
 .sms{background:#0d1b66;}
 
 #historyBox{display:none;margin-top:15px;}
-
 .history-item{
-background:#f1f3f6;
-padding:10px;
-border-radius:6px;
-margin-bottom:10px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-font-size:14px;
+  background:#f1f3f6;
+  padding:10px;
+  border-radius:6px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:14px;
 }
-
 .history-left{
-display:flex;
-flex-direction:column;
+  display:flex;
+  flex-direction:column;
 }
-
 .history-time{
-font-size:11px;
-color:#777;
+  font-size:11px;
+  color:#777;
 }
 
 .edit-icon{
-cursor:pointer;
-font-size:16px;
+  cursor:pointer;
+  font-size:16px;
 }
 
 #classArea{
-max-height:280px;
-overflow-y:auto;
-padding-right:4px;
+  max-height:280px;
+  overflow-y:auto;
+  padding-right:4px;
 }
 
 #toast{
-position:fixed;
-bottom:30px;
-left:50%;
-transform:translateX(-50%);
-background:#0d1b66;
-color:white;
-padding:14px 22px;
-border-radius:8px;
-font-size:14px;
-opacity:0;
-transition:.3s;
+  position:fixed;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#0d1b66;
+  color:white;
+  padding:14px 22px;
+  border-radius:8px;
+  font-size:14px;
+  opacity:0;
+  transition:.3s;
 }
-
 #toast.show{opacity:1;}
 
-
-.edit-icon{
-cursor:pointer;
-font-size:14px;
-float:right;
-margin-left:10px;
+@media screen and (max-width:480px){
+  input,select{font-size:17px;padding:14px;margin:10px 0;}
+  button{font-size:17px;padding:14px;}
+  .card{padding:15px;}
 }
 </style>
 </head>
@@ -140,24 +123,17 @@ margin-left:10px;
 <body>
 
 <div class="card" id="loginBox">
-
 <h3>Sales Rep Login</h3>
-
 <input id="repId" placeholder="Rep ID">
 <input id="repPin" type="password" placeholder="PIN">
-
 <button id="loginBtn" onclick="login()">Login</button>
-
 </div>
 
 <div class="card" id="appBox" style="display:none">
-
-<h3>Register School Enrollment</h3>
+<h3 id="formHeader">Register School Enrollment</h3>
 
 <div id="formArea">
-
 <input id="schoolName" placeholder="School Name">
-
 <select id="region">
 <option value="">Select Region</option>
 <option>Greater Accra</option>
@@ -173,9 +149,7 @@ margin-left:10px;
 </select>
 
 <input id="location" placeholder="Town / District">
-
 <input type="tel" id="phone" inputmode="numeric" maxlength="10" placeholder="School Phone">
-
 <select id="language">
 <option value="">Ghanaian Language</option>
 <option>Asante Twi</option>
@@ -185,7 +159,6 @@ margin-left:10px;
 <option>Dagbani</option>
 <option>Fante</option>
 </select>
-
 <select id="french">
 <option value="No">French: No</option>
 <option value="Yes">French: Yes</option>
@@ -200,317 +173,208 @@ margin-left:10px;
 <div id="classArea"></div>
 
 <button id="submitBtn" onclick="submitEnrollment()">Submit Enrollment</button>
-
 <button id="showHistoryBtn" onclick="toggleHistory()">Show History</button>
-
 </div>
 
-<button id="addNewBtn" onclick="reloadForm()" style="display:none">
-Add New School / Enrollment
-</button>
+<button id="addNewBtn" onclick="reloadForm()" style="display:none">Add New School / Enrollment</button>
 
 <div id="summarySection" class="summary" style="display:none">
-
 <h3>Bill Summary</h3>
-
 <div id="summaryText"></div>
-
 <div class="shareBtns">
 <button class="whatsapp" onclick="shareWhatsApp()">Send Bill via WhatsApp</button>
 <button class="sms" onclick="shareSMS()">Send Bill via SMS</button>
 </div>
-
 </div>
 
 <div id="historyBox">
 <h3>Submitted Schools</h3>
 <ul id="historyList"></ul>
 </div>
-
 </div>
 
 <div id="toast"></div>
 
 <script>
-
 const API_URL="https://script.google.com/macros/s/AKfycbxLXNvdWCZCX9C6R4Sv-12shfiUMeJ85oGAa291jbnpxrvtUPt9HPNtDqo-cH0rTQGFug/exec";
 
 function showToast(msg){
-let t=document.getElementById("toast");
-t.innerText=msg;
-t.classList.add("show");
-setTimeout(()=>t.classList.remove("show"),2000);
+  let t=document.getElementById("toast");
+  t.innerText=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2000);
 }
 
 async function login(){
-
-let btn=document.getElementById("loginBtn");
-btn.disabled=true;
-btn.innerText="Logging in...";
-
-try{
-
-let res=await fetch(API_URL,{
-method:"POST",
-body:JSON.stringify({
-action:"login",
-repId:repId.value,
-pin:repPin.value
-})
-});
-
-let data=await res.json();
-
-if(data.status==="ok"){
-
-localStorage.setItem("repId",repId.value);
-
-loginBox.style.display="none";
-appBox.style.display="block";
-
-loadHistory();
-
-showToast("Login successful");
-
-}else{
-showToast("Invalid login");
-}
-
-}catch{
-showToast("Connection error");
-}
-
-btn.disabled=false;
-btn.innerText="Login";
-
+  let btn=document.getElementById("loginBtn");
+  btn.disabled=true; btn.innerText="Logging in...";
+  try{
+    let res=await fetch(API_URL,{
+      method:"POST",
+      body:JSON.stringify({action:"login",repId:repId.value,pin:repPin.value})
+    });
+    let data=await res.json();
+    if(data.status==="ok"){
+      localStorage.setItem("repId",repId.value);
+      loginBox.style.display="none";
+      appBox.style.display="block";
+      loadHistory();
+      showToast("Login successful");
+    } else { showToast("Invalid login"); }
+  } catch{ showToast("Connection error"); }
+  btn.disabled=false; btn.innerText="Login";
 }
 
 function toggleClasses(){
-
-let type=examType.value;
-let area=classArea;
-
-area.innerHTML="";
-
-const classes=[
-["nursery","Nursery"],
-["kg1","KG1"],
-["kg2","KG2"],
-["b1","Basic 1"],
-["b2","Basic 2"],
-["b3","Basic 3"],
-["b4","Basic 4"],
-["b5","Basic 5"],
-["b6","Basic 6"],
-["b7","Basic 7"],
-["b8","Basic 8"],
-["b9","Basic 9"]
-];
-
-if(type==="mock"){
-area.innerHTML=`<input type="number" id="b9" placeholder="Basic 9 Enrollment">`;
-}
-
-if(type==="terminal"){
-classes.forEach(c=>{
-area.innerHTML+=`<input type="number" id="${c[0]}" placeholder="${c[1]} Enrollment">`;
-});
-}
-
+  let type=examType.value;
+  let area=classArea; area.innerHTML="";
+  const classes=[["nursery","Nursery"],["kg1","KG1"],["kg2","KG2"],
+                 ["b1","Basic 1"],["b2","Basic 2"],["b3","Basic 3"],
+                 ["b4","Basic 4"],["b5","Basic 5"],["b6","Basic 6"],
+                 ["b7","Basic 7"],["b8","Basic 8"],["b9","Basic 9"]];
+  if(type==="mock"){ area.innerHTML=`<input type="number" id="b9" placeholder="Basic 9 Enrollment">`; }
+  if(type==="terminal"){ classes.forEach(c=>{area.innerHTML+=`<input type="number" id="${c[0]}" placeholder="${c[1]} Enrollment">`;});}
 }
 
 function calculateBill(e){
-
-let total=0;
-let categories={};
-
-categories["Preschool"]=((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*8;
-categories["Lower Primary"]=((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*9;
-categories["Upper Primary"]=((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*9;
-categories["Basic 7 & 8"]=((+e.b7||0)+(+e.b8||0))*15;
-categories["Basic 9"]=((+e.b9||0))*20;
-
-for(let k in categories) total+=categories[k];
-
-total+=20;
-
-return{categories,total};
-
+  let total=0; let categories={};
+  categories["Preschool"]=((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*8;
+  categories["Lower Primary"]=((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*9;
+  categories["Upper Primary"]=((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*9;
+  categories["Basic 7 & 8"]=((+e.b7||0)+(+e.b8||0))*15;
+  categories["Basic 9"]=((+e.b9||0))*20;
+  for(let k in categories) total+=categories[k];
+  total+=20;
+  return {categories,total};
 }
 
 async function submitEnrollment(){
+  let btn=submitBtn;
+  btn.disabled=true; btn.innerText="Submitting...";
 
-let btn=submitBtn;
+  let school=schoolName.value;
+  let regionVal=region.value;
+  let locationVal=document.getElementById("location").value;
+  let phoneVal=phone.value;
+  let exam=examType.value;
+  let languageVal=language.value;
+  let frenchVal=french.value;
 
-btn.disabled=true;
-btn.innerText="Submitting...";
+  let enrollments={};
+  document.querySelectorAll("#classArea input").forEach(i=>{enrollments[i.id]=i.value||0;});
 
-let school=schoolName.value;
-let regionVal=region.value;
-// let locationVal=location.value;
-let locationVal = document.getElementById("location").value;
-let phoneVal=phone.value;
-let exam=examType.value;
-let languageVal=language.value;
-let frenchVal=french.value;
+  let bill=calculateBill(enrollments);
 
-let enrollments={};
-document.querySelectorAll("#classArea input").forEach(i=>{
-enrollments[i.id]=i.value||0;
-});
+  let text="";
+  for(let k in bill.categories){ text+=`<div>${k}: GHS ${bill.categories[k]}</div>`;}
+  text+=`<div>Delivery Fee: GHS 20</div>`;
+  text+=`<div><b>Total Bill: GHS ${bill.total}</b></div>`;
+  summaryText.innerHTML=text;
 
-let bill=calculateBill(enrollments);
+  summarySection.style.display="block";
+  historyBox.style.display="none";
+  formArea.style.display="none";
+  showHistoryBtn.style.display="none";
+  addNewBtn.style.display="block";
+  document.getElementById("formHeader").style.display="none";
 
-let text="";
+  let submissionId=Date.now();
+  let history=JSON.parse(localStorage.getItem("history")||"[]");
 
-for(let k in bill.categories){
-text+=`<div>${k}: GHS ${bill.categories[k]}</div>`;
-}
+  let record={
+    submissionId,
+    school,
+    region: regionVal,
+    location: locationVal,
+    phone: phoneVal,
+    language: languageVal,
+    french: frenchVal,
+    examType: exam,
+    enrollments,
+    time: new Date().toLocaleString()
+  };
+  history.push(record);
+  localStorage.setItem("history",JSON.stringify(history));
 
-text+=`<div>Delivery Fee: GHS 20</div>`;
-text+=`<div><b>Total Bill: GHS ${bill.total}</b></div>`;
+  loadHistory();
 
-summaryText.innerHTML=text;
+  await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"submit",
+      repId:localStorage.getItem("repId"),
+      submissionId,
+      school,
+      region: regionVal,
+      location: locationVal,
+      phone: phoneVal,
+      language: languageVal,
+      french: frenchVal,
+      examType: exam,
+      enrollments,
+      totalBill: bill.total
+    })
+  });
 
-summarySection.style.display="block";
-
-historyBox.style.display="none";
-
-formArea.style.display="none";
-showHistoryBtn.style.display="none";
-addNewBtn.style.display="block";
-
-let submissionId=Date.now();
-
-let history=JSON.parse(localStorage.getItem("history")||"[]");
-
-let record={
-submissionId,
-school,
-region:regionVal,
-location:locationVal,
-phone:phoneVal,
-language:languageVal,
-french:frenchVal,
-examType:exam,
-enrollments,
-time:new Date().toLocaleString()
-};
-
-history.push(record);
-localStorage.setItem("history",JSON.stringify(history));
-
-loadHistory();
-
-await fetch(API_URL,{
-method:"POST",
-body:JSON.stringify({
-action:"submit",
-repId:localStorage.getItem("repId"),
-submissionId,
-school,
-region:regionVal,
-location:locationVal,
-phone:phoneVal,
-language:languageVal,
-french:frenchVal,
-examType:exam,
-enrollments,
-totalBill:bill.total
-})
-});
-
-showToast("Enrollment submitted");
-
-btn.disabled=false;
-btn.innerText="Submit Enrollment";
-
+  showToast("Enrollment submitted");
+  btn.disabled=false; btn.innerText="Submit Enrollment";
 }
 
 function reloadForm(){
-
-summarySection.style.display="none";
-historyBox.style.display="none";
-
-formArea.style.display="block";
-showHistoryBtn.style.display="block";
-addNewBtn.style.display="none";
-
-document.querySelectorAll("input").forEach(i=>i.value="");
-
-classArea.innerHTML="";
-
+  summarySection.style.display="none";
+  historyBox.style.display="none";
+  formArea.style.display="block";
+  showHistoryBtn.style.display="block";
+  addNewBtn.style.display="none";
+  document.getElementById("formHeader").style.display="block";
+  document.querySelectorAll("input").forEach(i=>i.value="");
+  classArea.innerHTML="";
 }
 
-function toggleHistory(){
-
-historyBox.style.display=
-historyBox.style.display==="block"?"none":"block";
-
-}
+function toggleHistory(){ historyBox.style.display=(historyBox.style.display==="block"?"none":"block"); }
 
 function loadHistory(){
-
-let list=historyList;
-
-list.innerHTML="";
-
-let history=JSON.parse(localStorage.getItem("history")||"[]");
-
-history.reverse().forEach(d=>{
-
-let li=document.createElement("li");
-
-li.className="history-item";
-
-li.innerHTML=`
-<b>${d.school}</b> - ${d.region}<br>
-<span class="edit-icon" onclick='editSchool(${JSON.stringify(d)})'>✏️</span>
-`;
-
-list.appendChild(li);
-
-});
-
+  let list=historyList; list.innerHTML="";
+  let history=JSON.parse(localStorage.getItem("history")||"[]");
+  history.reverse().forEach(d=>{
+    let li=document.createElement("li");
+    li.className="history-item";
+    li.innerHTML=`
+      <div class="history-left">
+        <span class="history-time">${d.time}</span>
+        <b>${d.school}</b> - ${d.region}
+      </div>
+      <span class="edit-icon" onclick='editSchool(${JSON.stringify(d)})'>✏️</span>
+    `;
+    list.appendChild(li);
+  });
 }
 
 function editSchool(data){
+  historyBox.style.display="none";
+  formArea.style.display="block";
+  document.getElementById("formHeader").style.display="block";
 
-historyBox.style.display="none";
+  schoolName.value=data.school;
+  region.value=data.region;
+  location.value=data.location;
+  phone.value=data.phone;
+  language.value=data.language;
+  french.value=data.french;
+  examType.value=data.examType;
 
-formArea.style.display="block";
+  toggleClasses();
+  setTimeout(()=>{
+    for(let k in data.enrollments){
+      let el=document.getElementById(k); if(el) el.value=data.enrollments[k];
+    }
+  },200);
 
-schoolName.value=data.school;
-region.value=data.region;
-location.value=data.location;
-phone.value=data.phone;
-language.value=data.language;
-french.value=data.french;
-examType.value=data.examType;
-
-toggleClasses();
-
-setTimeout(()=>{
-for(let k in data.enrollments){
-let el=document.getElementById(k);
-if(el) el.value=data.enrollments[k];
-}
-},200);
-
-window.scrollTo({top:0,behavior:"smooth"});
-
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
-function shareWhatsApp(){
-let text=summaryText.innerText;
-window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
-}
-
-function shareSMS(){
-let text=summaryText.innerText;
-window.open(`sms:?body=${encodeURIComponent(text)}`);
-}
-
+function shareWhatsApp(){ window.open(`https://wa.me/?text=${encodeURIComponent(summaryText.innerText)}`); }
+function shareSMS(){ window.open(`sms:?body=${encodeURIComponent(summaryText.innerText)}`); }
 </script>
 
 </body>
