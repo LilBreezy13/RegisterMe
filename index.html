@@ -492,24 +492,25 @@ async function submitEnrollment(){
 
   loadHistory();
 
-  await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      action:"submit",
-      repId:localStorage.getItem("repId"),
-      submissionId,
-      school,
-      region: regionVal,
-      location: locationVal,
-      phone: phoneVal,
-      language: languageVal,
-      french: frenchVal,
-      examType: exam,
-      packageOption: packageVal,
-      enrollments,
-      totalBill: bill.total
-    })
-  });
+fetch(API_URL,{
+  method:"POST",
+  headers:{ "Content-Type":"application/json" },
+  body:JSON.stringify({
+    action:"submit",
+    repId:localStorage.getItem("repId"),
+    submissionId,
+    school,
+    region: regionVal,
+    location: locationVal,
+    phone: phoneVal,
+    language: languageVal,
+    french: frenchVal,
+    examType: exam,
+    packageOption: packageVal,
+    enrollments,
+    totalBill: bill.total
+  })
+}).catch(()=>{});
 
   showToast("Enrollment submitted");
 
