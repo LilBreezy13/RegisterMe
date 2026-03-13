@@ -5,142 +5,193 @@
 <title>Enrollment Portal</title>
 
 <style>
+
 html{scroll-behavior:smooth;}
 
 body{
-  font-family:Arial;
-  background:#eef2f7;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  min-height:100vh;
-  padding:35px 12px;   /* added top space */
-  margin:0;
-  overflow-x:hidden;
+font-family:Arial,Helvetica,sans-serif;
+background:linear-gradient(135deg,#e8edf5,#dfe6f2);
+display:flex;
+justify-content:center;
+align-items:flex-start;
+min-height:100vh;
+padding:28px 10px;
+margin:0;
 }
+
 .card{
-  background:white;
-  padding:20px;
-  max-width:420px;
-  width:100%;
-  border-radius:10px;
-  box-shadow:0 4px 14px rgba(0,0,0,0.1);
-  box-sizing:border-box;
+background:white;
+padding:18px;
+max-width:420px;
+width:100%;
+border-radius:12px;
+box-shadow:0 8px 25px rgba(0,0,0,0.08);
+box-sizing:border-box;
 }
-h3{ text-align:center; margin-bottom:18px; font-weight:600; }
+
+h3{
+text-align:center;
+margin-bottom:16px;
+font-weight:600;
+color:#0d1b66;
+}
+
+#formArea{
+background:#f9fafc;
+padding:14px;
+border-radius:10px;
+}
+
 input,select{
-  width:100%;
-  padding:12px;
-  margin:8px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
-  font-size:15px;
-  box-sizing:border-box;
+width:100%;
+box-sizing:border-box;
+padding:11px;
+margin:6px 0;
+border-radius:7px;
+border:1px solid #d7dce5;
+font-size:14px;
+background:white;
 }
+
 input:focus,select:focus{
-  outline:none;
-  border-color:#0d1b66;
+outline:none;
+border-color:#0d1b66;
+box-shadow:0 0 0 2px rgba(13,27,102,0.08);
 }
+
 button{
-  width:100%;
-  padding:13px;
-  background:#0d1b66;
-  color:white;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  margin-top:10px;
-  font-size:15px;
+width:100%;
+padding:12px;
+background:#0d1b66;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+margin-top:10px;
+font-size:14px;
+transition:.2s;
 }
-button:hover{background:#162a8d;}
-button:disabled{background:gray;cursor:not-allowed;}
+
+button:hover{
+background:#1c2e96;
+}
+
+button:disabled{
+background:gray;
+cursor:not-allowed;
+}
 
 .summary{
-  background:#f7f7f7;
-  padding:15px;
-  border-radius:8px;
-  margin-top:20px;
-  font-size:14px;
+background:#f5f7fb;
+padding:16px;
+border-radius:10px;
+margin-top:18px;
+font-size:14px;
 }
-.summary div{margin-top:10px;}
-.shareBtns{margin-top:15px;}
+
+.summary div{margin-top:8px;}
+
+.shareBtns{
+margin-top:15px;
+display:flex;
+gap:10px;
+}
+
 .whatsapp{background:#25D366;}
 .sms{background:#0d1b66;}
 
-#historyBox{display:none;margin-top:15px;}
-.history-item{
-  background:#f1f3f6;
-  padding:10px;
-  border-radius:6px;
-  margin-bottom:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:14px;
-}
-.history-left{
-  display:flex;
-  flex-direction:column;
-}
-.history-time{
-  font-size:11px;
-  color:#777;
+#historyBox{
+display:none;
+margin-top:18px;
 }
 
-.edit-icon{
-  cursor:pointer;
-  font-size:16px;
+#historyList{
+padding:0;
+margin:0;
+list-style:none;
+max-height:280px;
+overflow-y:auto;
+}
+
+.history-item{
+background:#f1f3f8;
+padding:12px;
+border-radius:8px;
+margin-bottom:10px;
+font-size:14px;
+cursor:pointer;
+transition:.2s;
+}
+
+.history-item:hover{
+background:#e8ecf7;
+}
+
+.history-left{
+display:flex;
+flex-direction:column;
+}
+
+.history-time{
+font-size:11px;
+color:#777;
+margin-top:2px;
 }
 
 #classArea{
-  max-height:280px;
-  overflow-y:auto;
-  padding-right:4px;
+max-height:250px;
+overflow-y:auto;
+padding-right:4px;
 }
 
 #toast{
-  position:fixed;
-  bottom:30px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#0d1b66;
-  color:white;
-  padding:14px 22px;
-  border-radius:8px;
-  font-size:14px;
-  opacity:0;
-  transition:.3s;
+position:fixed;
+bottom:30px;
+left:50%;
+transform:translateX(-50%);
+background:#0d1b66;
+color:white;
+padding:13px 20px;
+border-radius:8px;
+font-size:14px;
+opacity:0;
+transition:.3s;
 }
+
 #toast.show{opacity:1;}
+
+.footer{
+text-align:center;
+margin-top:15px;
+font-size:11px;
+color:#666;
+}
 
 @media screen and (max-width:480px){
 
-  body{
-    padding:40px 12px;
-  }
-
-  .card{
-    padding:18px;
-    border-radius:12px;
-  }
-
-  input,select{
-    font-size:17px;
-    padding:15px;
-    margin:12px 0;
-  }
-
-  button{
-    font-size:17px;
-    padding:15px;
-  }
-
-  h3{
-    font-size:18px;
-  }
-
+body{
+padding:20px 8px;
 }
 
+.card{
+padding:15px;
+}
+
+input,select{
+font-size:14px;
+padding:10px;
+}
+
+button{
+font-size:15px;
+padding:12px;
+}
+
+h3{
+font-size:17px;
+}
+
+}
 
 </style>
 </head>
@@ -158,7 +209,9 @@ button:disabled{background:gray;cursor:not-allowed;}
 <h3 id="formHeader">Register School Enrollment</h3>
 
 <div id="formArea">
+
 <input id="schoolName" placeholder="School Name">
+
 <select id="region">
 <option value="">Select Region</option>
 <option>Greater Accra</option>
@@ -174,9 +227,11 @@ button:disabled{background:gray;cursor:not-allowed;}
 </select>
 
 <input id="location" placeholder="Town / District">
+
 <input type="tel" id="phone" inputmode="numeric" maxlength="10" placeholder="School Phone">
+
 <select id="language">
-<option value="">Ghanaian Language</option>
+<option value="">Select Ghanaian Languages</option>
 <option>Asante Twi</option>
 <option>Akuapem Twi</option>
 <option>Ewe</option>
@@ -184,16 +239,17 @@ button:disabled{background:gray;cursor:not-allowed;}
 <option>Dagbani</option>
 <option>Fante</option>
 </select>
+
 <select id="french">
 <option value="No">French: No</option>
 <option value="Yes">French: Yes</option>
 </select>
 
 <select id="packageOption">
-  <option value="">Select Package Option</option>
-  <option value="A">Option A - Premium Pack</option>
-  <option value="B">Option B - General Pack</option>
-  <option value="C">Option C - Open Pack</option>
+<option value="">Select Package Option</option>
+<option value="A">Option A - Premium Pack</option>
+<option value="B">Option B - General Pack</option>
+<option value="C">Option C - Open Pack</option>
 </select>
 
 <select id="examType" onchange="toggleClasses()">
@@ -205,14 +261,17 @@ button:disabled{background:gray;cursor:not-allowed;}
 <div id="classArea"></div>
 
 <button id="submitBtn" onclick="submitEnrollment()">Submit Enrollment</button>
-<button id="showHistoryBtn" onclick="toggleHistory()">Show History</button>
+<button onclick="reloadForm()">Reload / New Enrollment</button>
+<button id="showHistoryBtn" onclick="toggleHistory()">Show / Hide History</button>
+
 </div>
 
-<button id="addNewBtn" onclick="reloadForm()" style="display:none">Add New School / Enrollment</button>
+<button id="addNewBtn" onclick="reloadForm()" style="display:none">Add New School</button>
 
 <div id="summarySection" class="summary" style="display:none">
 <h3>Bill Summary</h3>
 <div id="summaryText"></div>
+
 <div class="shareBtns">
 <button class="whatsapp" onclick="shareWhatsApp()">Send Bill via WhatsApp</button>
 <button class="sms" onclick="shareSMS()">Send Bill via SMS</button>
@@ -223,6 +282,11 @@ button:disabled{background:gray;cursor:not-allowed;}
 <h3>Submitted Schools</h3>
 <ul id="historyList"></ul>
 </div>
+
+<div class="footer">
+Registration Portal • Sales Rep System
+</div>
+
 </div>
 
 <div id="toast"></div>
@@ -238,24 +302,58 @@ function showToast(msg){
 }
 
 async function login(){
+
   let btn=document.getElementById("loginBtn");
-  btn.disabled=true; btn.innerText="Logging in...";
+  btn.disabled=true;
+  btn.innerText="Logging in...";
+
   try{
-    let res=await fetch(API_URL,{
+
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(),10000); // 10 seconds
+
+    let res = await fetch(API_URL,{
       method:"POST",
-      body:JSON.stringify({action:"login",repId:repId.value,pin:repPin.value})
+      body:JSON.stringify({
+        action:"login",
+        repId:repId.value,
+        pin:repPin.value
+      }),
+      signal:controller.signal
     });
+
+    clearTimeout(timeout);
+
     let data=await res.json();
+
     if(data.status==="ok"){
+
       localStorage.setItem("repId",repId.value);
+
       loginBox.style.display="none";
       appBox.style.display="block";
+
       loadHistory();
       showToast("Login successful");
-    } else { showToast("Invalid login"); }
-  } catch{ showToast("Connection error"); }
-  btn.disabled=false; btn.innerText="Login";
+
+    }else{
+      showToast("Invalid login");
+    }
+
+  }catch(err){
+
+    if(err.name==="AbortError"){
+      showToast("Server took too long (10s)");
+    }else{
+      showToast("Connection error");
+    }
+
+  }
+
+  btn.disabled=false;
+  btn.innerText="Login";
 }
+
 
 function toggleClasses(){
   let type=examType.value;
@@ -269,39 +367,86 @@ function toggleClasses(){
 }
 
 function calculateBill(e){
-  let total=0; let categories={};
+
+  let total=0;
+  let categories={};
+
   categories["Preschool"]=((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*8;
+
   categories["Lower Primary"]=((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*9;
+
   categories["Upper Primary"]=((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*9;
+
   categories["Basic 7 & 8"]=((+e.b7||0)+(+e.b8||0))*15;
-  categories["Basic 9"]=((+e.b9||0))*20;
+
+  let b9 = (+e.b9||0);
+
+  let option=document.getElementById("packageOption").value;
+
+  let price=20;
+
+  if(option==="A") price=60;
+  if(option==="B") price=20;
+  if(option==="C") price=15;
+
+  categories["Basic 9"]=b9*price;
+
   for(let k in categories) total+=categories[k];
+
   total+=20;
+
   return {categories,total};
 }
 
 async function submitEnrollment(){
+  
   let btn=submitBtn;
-  btn.disabled=true; btn.innerText="Submitting...";
+  btn.disabled=true;
+  btn.innerText="Submitting...";
 
-  let school=schoolName.value;
+  let school=schoolName.value.trim();
   let regionVal=region.value;
-  let locationVal=document.getElementById("location").value;
-  let phoneVal=phone.value;
+  let locationVal=document.getElementById("location").value.trim();
+  let phoneVal=phone.value.trim();
   let exam=examType.value;
   let languageVal=language.value;
   let frenchVal=french.value;
-  let packageVal = document.getElementById("packageOption").value;
+  let packageVal=document.getElementById("packageOption").value;
+
+  /* NEW VALIDATION */
+  if(!school || !regionVal || !locationVal || !phoneVal || !exam || !languageVal || !frenchVal){
+    showToast("Please fill all required fields");
+    btn.disabled=false;
+    btn.innerText="Submit Enrollment";
+    return;
+  }
 
   let enrollments={};
-  document.querySelectorAll("#classArea input").forEach(i=>{enrollments[i.id]=i.value||0;});
+  document.querySelectorAll("#classArea input").forEach(i=>{
+    enrollments[i.id]=i.value||0;
+  });
+
+  if(exam==="mock" && packageVal===""){
+    showToast("Select Option A, B or C for Mock exam");
+    btn.disabled=false;
+    btn.innerText="Submit Enrollment";
+    return;
+  }
+
+  if(exam==="terminal"){
+    packageVal="B";
+  }
 
   let bill=calculateBill(enrollments);
 
   let text="";
-  for(let k in bill.categories){ text+=`<div>${k}: GHS ${bill.categories[k]}</div>`;}
+  for(let k in bill.categories){
+    text+=`<div>${k}: GHS ${bill.categories[k]}</div>`;
+  }
+
   text+=`<div>Delivery Fee: GHS 20</div>`;
   text+=`<div><b>Total Bill: GHS ${bill.total}</b></div>`;
+
   summaryText.innerHTML=text;
 
   summarySection.style.display="block";
@@ -323,10 +468,11 @@ async function submitEnrollment(){
     language: languageVal,
     french: frenchVal,
     examType: exam,
-      packageOption: packageVal,  // <-- NEW
+    packageOption: packageVal,
     enrollments,
     time: new Date().toLocaleString()
   };
+
   history.push(record);
   localStorage.setItem("history",JSON.stringify(history));
 
@@ -345,51 +491,80 @@ async function submitEnrollment(){
       language: languageVal,
       french: frenchVal,
       examType: exam,
-      packageOption: packageVal,  // <-- NEW
+      packageOption: packageVal,
       enrollments,
-          packageOption: document.getElementById("packageOption").value, // add this line if you have dropdown
       totalBill: bill.total
     })
   });
 
   showToast("Enrollment submitted");
-  btn.disabled=false; btn.innerText="Submit Enrollment";
+
+  btn.disabled=false;
+  btn.innerText="Submit Enrollment";
 }
 
 function reloadForm(){
+
   summarySection.style.display="none";
   historyBox.style.display="none";
   formArea.style.display="block";
   showHistoryBtn.style.display="block";
   addNewBtn.style.display="none";
   document.getElementById("formHeader").style.display="block";
+
   document.querySelectorAll("input").forEach(i=>i.value="");
+
+  document.querySelectorAll("select").forEach(s=>{
+    s.selectedIndex=0;
+  });
+
   classArea.innerHTML="";
+
+  window.scrollTo({top:0,behavior:"smooth"});
 }
+
+
 
 function toggleHistory(){ historyBox.style.display=(historyBox.style.display==="block"?"none":"block"); }
 
 function loadHistory(){
-  let list=historyList; list.innerHTML="";
+
+  let list=historyList;
+  list.innerHTML="";
+
   let history=JSON.parse(localStorage.getItem("history")||"[]");
+
   history.reverse().forEach(d=>{
+
     let li=document.createElement("li");
+
     li.className="history-item";
+
+    li.onclick=function(){
+      editSchool(d);
+    };
+
     li.innerHTML=`
       <div class="history-left">
+        <b>${d.school}</b>
+        <span>${d.region}</span>
         <span class="history-time">${d.time}</span>
-        <b>${d.school}</b> - ${d.region}
       </div>
-      <span class="edit-icon" onclick='editSchool(${JSON.stringify(d)})'>✏️</span>
     `;
+
     list.appendChild(li);
+
   });
+
 }
+
 
 function editSchool(data){
   historyBox.style.display="none";
   formArea.style.display="block";
   document.getElementById("formHeader").style.display="block";
+  document.getElementById("location").value=data.location;
+
 
   schoolName.value=data.school;
   region.value=data.region;
