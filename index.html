@@ -3,10 +3,17 @@
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Enrollment Portal</title>
-
 <style>
 
-html{scroll-behavior:smooth;}
+*{
+box-sizing:border-box;
+}
+
+html{
+scroll-behavior:smooth;
+width:100%;
+overflow-x:hidden;
+}
 
 body{
 font-family:Arial,Helvetica,sans-serif;
@@ -17,6 +24,8 @@ align-items:flex-start;
 min-height:100vh;
 padding:28px 10px;
 margin:0;
+width:100%;
+overflow-x:hidden;
 }
 
 .card{
@@ -26,7 +35,7 @@ max-width:420px;
 width:100%;
 border-radius:12px;
 box-shadow:0 8px 25px rgba(0,0,0,0.08);
-box-sizing:border-box;
+overflow-x:hidden;
 }
 
 h3{
@@ -40,11 +49,13 @@ color:#0d1b66;
 background:#f9fafc;
 padding:14px;
 border-radius:10px;
+overflow-x:hidden;
 }
 
 input,select{
 width:100%;
-box-sizing:border-box;
+max-width:100%;
+display:block;
 padding:11px;
 margin:6px 0;
 border-radius:7px;
@@ -87,6 +98,7 @@ padding:16px;
 border-radius:10px;
 margin-top:18px;
 font-size:14px;
+overflow-x:hidden;
 }
 
 .summary div{margin-top:8px;}
@@ -170,15 +182,16 @@ color:#666;
 @media screen and (max-width:480px){
 
 body{
-padding:20px 8px;
+padding:18px 8px;
 }
 
 .card{
-padding:15px;
+padding:14px;
+border-radius:10px;
 }
 
 input,select{
-font-size:14px;
+font-size:16px; /* prevents iOS zoom issue */
 padding:10px;
 }
 
@@ -194,6 +207,7 @@ font-size:17px;
 }
 
 </style>
+
 </head>
 
 <body>
