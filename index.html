@@ -3,29 +3,18 @@
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Enrollment Portal</title>
+
 <style>
 
-*{
-box-sizing:border-box;
-}
-
-html{
-scroll-behavior:smooth;
-width:100%;
-overflow-x:hidden;
-}
+*{box-sizing:border-box;}
 
 body{
 font-family:Arial,Helvetica,sans-serif;
 background:linear-gradient(135deg,#e8edf5,#dfe6f2);
 display:flex;
 justify-content:center;
-align-items:flex-start;
-min-height:100vh;
-padding:28px 10px;
+padding:25px 10px;
 margin:0;
-width:100%;
-overflow-x:hidden;
 }
 
 .card{
@@ -35,13 +24,11 @@ max-width:420px;
 width:100%;
 border-radius:12px;
 box-shadow:0 8px 25px rgba(0,0,0,0.08);
-overflow-x:hidden;
 }
 
 h3{
 text-align:center;
-margin-bottom:16px;
-font-weight:600;
+margin-bottom:15px;
 color:#0d1b66;
 }
 
@@ -49,25 +36,15 @@ color:#0d1b66;
 background:#f9fafc;
 padding:14px;
 border-radius:10px;
-overflow-x:hidden;
 }
 
 input,select{
 width:100%;
-max-width:100%;
-display:block;
 padding:11px;
 margin:6px 0;
 border-radius:7px;
 border:1px solid #d7dce5;
 font-size:14px;
-background:white;
-}
-
-input:focus,select:focus{
-outline:none;
-border-color:#0d1b66;
-box-shadow:0 0 0 2px rgba(13,27,102,0.08);
 }
 
 button{
@@ -77,15 +54,11 @@ background:#0d1b66;
 color:white;
 border:none;
 border-radius:8px;
-cursor:pointer;
 margin-top:10px;
-font-size:14px;
-transition:.2s;
+cursor:pointer;
 }
 
-button:hover{
-background:#1c2e96;
-}
+button:hover{background:#1c2e96;}
 
 button:disabled{
 background:gray;
@@ -94,17 +67,16 @@ cursor:not-allowed;
 
 .summary{
 background:#f5f7fb;
-padding:16px;
+padding:15px;
 border-radius:10px;
-margin-top:18px;
+margin-top:15px;
 font-size:14px;
-overflow-x:hidden;
 }
 
-.summary div{margin-top:8px;}
+.summary div{margin-top:6px;}
 
 .shareBtns{
-margin-top:15px;
+margin-top:12px;
 display:flex;
 gap:10px;
 }
@@ -115,45 +87,51 @@ gap:10px;
 #historyBox{
 display:none;
 margin-top:18px;
+text-align:center;
 }
 
 #historyList{
 padding:0;
 margin:0;
 list-style:none;
-max-height:280px;
+max-height:300px;
 overflow-y:auto;
 }
 
 .history-item{
 background:#f1f3f8;
-padding:12px;
-border-radius:8px;
+padding:14px;
+border-radius:10px;
 margin-bottom:10px;
-font-size:14px;
 cursor:pointer;
+text-align:center;
 transition:.2s;
 }
 
 .history-item:hover{
-background:#e8ecf7;
+background:#e7ebf5;
 }
 
-.history-left{
-display:flex;
-flex-direction:column;
+.history-item b{
+display:block;
+font-size:15px;
+color:#0d1b66;
+}
+
+.history-item span{
+font-size:13px;
+color:#555;
 }
 
 .history-time{
 font-size:11px;
 color:#777;
-margin-top:2px;
+margin-top:3px;
 }
 
 #classArea{
 max-height:250px;
 overflow-y:auto;
-padding-right:4px;
 }
 
 #toast{
@@ -163,9 +141,8 @@ left:50%;
 transform:translateX(-50%);
 background:#0d1b66;
 color:white;
-padding:13px 20px;
+padding:12px 20px;
 border-radius:8px;
-font-size:14px;
 opacity:0;
 transition:.3s;
 }
@@ -179,35 +156,7 @@ font-size:11px;
 color:#666;
 }
 
-@media screen and (max-width:480px){
-
-body{
-padding:18px 8px;
-}
-
-.card{
-padding:14px;
-border-radius:10px;
-}
-
-input,select{
-font-size:16px; /* prevents iOS zoom issue */
-padding:10px;
-}
-
-button{
-font-size:15px;
-padding:12px;
-}
-
-h3{
-font-size:17px;
-}
-
-}
-
 </style>
-
 </head>
 
 <body>
@@ -220,7 +169,8 @@ font-size:17px;
 </div>
 
 <div class="card" id="appBox" style="display:none">
-<h3 id="formHeader">Register New School </h3>
+
+<h3 id="formHeader">Register New School</h3>
 
 <div id="formArea">
 
@@ -242,7 +192,7 @@ font-size:17px;
 
 <input id="location" placeholder="Location">
 
-<input type="tel" id="phone" inputmode="numeric" maxlength="10" placeholder="Contact">
+<input id="phone" maxlength="10" placeholder="Contact">
 
 <select id="language">
 <option value="">Select Ghanaian Languages</option>
@@ -276,7 +226,7 @@ font-size:17px;
 
 <button id="submitBtn" onclick="submitEnrollment()">Submit Enrollment</button>
 <button onclick="reloadForm()">Reload / New Enrollment</button>
-<button id="showHistoryBtn" onclick="toggleHistory()">Show / Hide History</button>
+<button onclick="toggleHistory()">Show / Hide History</button>
 
 </div>
 
@@ -306,301 +256,307 @@ Registration Portal • Sales Rep System
 <div id="toast"></div>
 
 <script>
+
 const API_URL="https://script.google.com/macros/s/AKfycbzq2nQOkSZVWqBBeLmWnqt1hx_77dbZOTuQsyp8-2VN6gA92qZdye5UlZXiAkiUVGUNAQ/exec";
 
 function showToast(msg){
-  let t=document.getElementById("toast");
-  t.innerText=msg;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),2000);
+let t=document.getElementById("toast");
+t.innerText=msg;
+t.classList.add("show");
+setTimeout(()=>t.classList.remove("show"),2000);
 }
 
 async function login(){
 
-  let btn=document.getElementById("loginBtn");
-  btn.disabled=true;
-  btn.innerText="Logging in...";
+let btn=document.getElementById("loginBtn");
+btn.disabled=true;
+btn.innerText="Logging in...";
 
-  try{
+try{
 
-    const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(),10000); // 10 seconds
+let res=await fetch(API_URL,{
+method:"POST",
+headers:{ "Content-Type":"text/plain;charset=utf-8"},
+body:JSON.stringify({
+action:"login",
+repId:document.getElementById("repId").value,
+pin:document.getElementById("repPin").value
+})
+});
 
-    let res = await fetch(API_URL,{
-      method:"POST",
-      body:JSON.stringify({
-        action:"login",
-        repId:repId.value,
-        pin:repPin.value
-      }),
-      signal:controller.signal
-    });
+let data=await res.json();
 
-    clearTimeout(timeout);
+if(data.status==="ok"){
 
-    let data=await res.json();
+localStorage.setItem("repId",document.getElementById("repId").value);
 
-    if(data.status==="ok"){
+loginBox.style.display="none";
+appBox.style.display="block";
 
-      localStorage.setItem("repId",repId.value);
+loadHistory();
 
-      loginBox.style.display="none";
-      appBox.style.display="block";
+showToast("Login successful");
 
-      loadHistory();
-      showToast("Login successful");
-
-    }else{
-      showToast("Invalid login");
-    }
-
-  }catch(err){
-
-    if(err.name==="AbortError"){
-      showToast("Server took too long (10s)");
-    }else{
-      showToast("Connection error");
-    }
-
-  }
-
-  btn.disabled=false;
-  btn.innerText="Login";
+}else{
+showToast("Invalid login");
 }
 
+}catch(err){
+showToast("Connection error");
+}
+
+btn.disabled=false;
+btn.innerText="Login";
+}
 
 function toggleClasses(){
-  let type=examType.value;
-  let area=classArea; area.innerHTML="";
-  const classes=[["nursery","Nursery"],["kg1","KG1"],["kg2","KG2"],
-                 ["b1","Basic 1"],["b2","Basic 2"],["b3","Basic 3"],
-                 ["b4","Basic 4"],["b5","Basic 5"],["b6","Basic 6"],
-                 ["b7","Basic 7"],["b8","Basic 8"],["b9","Basic 9"]];
-  if(type==="mock"){ area.innerHTML=`<input type="number" id="b9" placeholder="Basic 9 Enrollment">`; }
-  if(type==="terminal"){ classes.forEach(c=>{area.innerHTML+=`<input type="number" id="${c[0]}" placeholder="${c[1]} Enrollment">`;});}
+
+let type=document.getElementById("examType").value;
+let area=document.getElementById("classArea");
+area.innerHTML="";
+
+const classes=[["nursery","Nursery"],["kg1","KG1"],["kg2","KG2"],["b1","Basic 1"],["b2","Basic 2"],["b3","Basic 3"],["b4","Basic 4"],["b5","Basic 5"],["b6","Basic 6"],["b7","Basic 7"],["b8","Basic 8"],["b9","Basic 9"]];
+
+if(type==="mock"){
+
+document.getElementById("packageOption").disabled=false;
+
+area.innerHTML=`<input type="number" id="b9" placeholder="Basic 9 Enrollment">`;
+
+}
+
+if(type==="terminal"){
+
+document.getElementById("packageOption").value="B";
+document.getElementById("packageOption").disabled=true;
+
+classes.forEach(c=>{
+area.innerHTML+=`<input type="number" id="${c[0]}" placeholder="${c[1]} Enrollment">`;
+});
+
+}
 }
 
 function calculateBill(e){
 
-  let total=0;
-  let categories={};
+let total=0;
 
-  categories["Preschool"]=((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*8;
+let categories={
+"Preschool":((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*8,
+"Lower Primary":((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*9,
+"Upper Primary":((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*10,
+"Basic 7 & 8":((+e.b7||0)+(+e.b8||0))*15
+};
 
-  categories["Lower Primary"]=((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*9;
+let b9=(+e.b9||0);
 
-  categories["Upper Primary"]=((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*9;
+let option=document.getElementById("packageOption").value;
 
-  categories["Basic 7 & 8"]=((+e.b7||0)+(+e.b8||0))*15;
+let price=20;
+if(option==="A")price=60;
+if(option==="B")price=20;
+if(option==="C")price=15;
 
-  let b9 = (+e.b9||0);
+categories["Basic 9"]=b9*price;
 
-  let option=document.getElementById("packageOption").value;
+for(let k in categories) total+=categories[k];
 
-  let price=20;
+total+=20;
 
-  if(option==="A") price=60;
-  if(option==="B") price=20;
-  if(option==="C") price=15;
-
-  categories["Basic 9"]=b9*price;
-
-  for(let k in categories) total+=categories[k];
-
-  total+=20;
-
-  return {categories,total};
+return {categories,total};
 }
+
 
 async function submitEnrollment(){
-  
-  let btn=submitBtn;
-  btn.disabled=true;
-  btn.innerText="Submitting...";
 
-  let school=schoolName.value.trim();
-  let regionVal=region.value;
-  let locationVal=document.getElementById("location").value.trim();
-  let phoneVal=phone.value.trim();
-  let exam=examType.value;
-  let languageVal=language.value;
-  let frenchVal=french.value;
-  let packageVal=document.getElementById("packageOption").value;
-
-  /* NEW VALIDATION */
-  if(!school || !regionVal || !locationVal || !phoneVal || !exam || !languageVal || !frenchVal){
-    showToast("Please fill all required fields");
-    btn.disabled=false;
-    btn.innerText="Submit Enrollment";
-    return;
-  }
-
-  let enrollments={};
-  document.querySelectorAll("#classArea input").forEach(i=>{
-    enrollments[i.id]=i.value||0;
-  });
-
-  if(exam==="mock" && packageVal===""){
-    showToast("Select Option A, B or C for Mock exam");
-    btn.disabled=false;
-    btn.innerText="Submit Enrollment";
-    return;
-  }
-
-  if(exam==="terminal"){
-    packageVal="B";
-  }
-
-  let bill=calculateBill(enrollments);
-
-  let text="";
-  for(let k in bill.categories){
-    text+=`<div>${k}: GHS ${bill.categories[k]}</div>`;
-  }
-
-  text+=`<div>Delivery Fee: GHS 20</div>`;
-  text+=`<div><b>Total Bill: GHS ${bill.total}</b></div>`;
-
-  summaryText.innerHTML=text;
-
-  summarySection.style.display="block";
-  historyBox.style.display="none";
-  formArea.style.display="none";
-  showHistoryBtn.style.display="none";
-  addNewBtn.style.display="block";
-  document.getElementById("formHeader").style.display="none";
-
-  let submissionId=Date.now();
-  let history=JSON.parse(localStorage.getItem("history")||"[]");
-
-  let record={
-    submissionId,
-    school,
-    region: regionVal,
-    location: locationVal,
-    phone: phoneVal,
-    language: languageVal,
-    french: frenchVal,
-    examType: exam,
-    packageOption: packageVal,
-    enrollments,
-    time: new Date().toLocaleString()
-  };
-
-  history.push(record);
-  localStorage.setItem("history",JSON.stringify(history));
-
-  loadHistory();
-
-fetch(API_URL,{
-  method:"POST",
-  headers:{ "Content-Type":"application/json" },
-  body:JSON.stringify({
-    action:"submit",
-    repId:localStorage.getItem("repId"),
-    submissionId,
-    school,
-    region: regionVal,
-    location: locationVal,
-    phone: phoneVal,
-    language: languageVal,
-    french: frenchVal,
-    examType: exam,
-    packageOption: packageVal,
-    enrollments,
-    totalBill: bill.total
-  })
-}).catch(()=>{});
-
-  showToast("Enrollment submitted");
-
-  btn.disabled=false;
-  btn.innerText="Submit Enrollment";
+if(!localStorage.getItem("repId")){
+showToast("Session expired");
+return;
 }
 
-function reloadForm(){
+let btn=document.getElementById("submitBtn");
+btn.disabled=true;
+btn.innerText="Submitting...";
 
-  summarySection.style.display="none";
-  historyBox.style.display="none";
-  formArea.style.display="block";
-  showHistoryBtn.style.display="block";
-  addNewBtn.style.display="none";
-  document.getElementById("formHeader").style.display="block";
+let school=document.getElementById("schoolName").value.trim();
+let regionVal=document.getElementById("region").value;
+let locationVal=document.getElementById("location").value.trim();
+let phoneVal=document.getElementById("phone").value.trim();
+let exam=document.getElementById("examType").value;
+let languageVal=document.getElementById("language").value;
+let frenchVal=document.getElementById("french").value;
+let packageVal=document.getElementById("packageOption").value;
 
-  document.querySelectorAll("input").forEach(i=>i.value="");
+/* REQUIRED FIELD CHECK */
+if(!school||!regionVal||!locationVal||!phoneVal||!exam||!languageVal||!frenchVal){
+showToast("Fill all fields");
+btn.disabled=false;
+btn.innerText="Submit Enrollment";
+return;
+}
 
-  document.querySelectorAll("select").forEach(s=>{
-    s.selectedIndex=0;
-  });
+/* MOCK OPTION REQUIRED */
+if(exam==="mock" && packageVal===""){
+showToast("Select Option A, B or C for Mock");
+btn.disabled=false;
+btn.innerText="Submit Enrollment";
+return;
+}
 
-  classArea.innerHTML="";
+/* TERMINAL AUTO OPTION B */
+if(exam==="terminal"){
+packageVal="B";
+}
 
-  window.scrollTo({top:0,behavior:"smooth"});
+let enrollments={};
+
+document.querySelectorAll("#classArea input").forEach(i=>{
+enrollments[i.id]=Number(i.value)||0;
+});
+
+/* CORRECT BILL CALCULATION */
+let bill=calculateBill(enrollments,exam,packageVal);
+
+let submissionId=Date.now();
+
+try{
+
+let res=await fetch(API_URL,{
+method:"POST",
+headers:{ "Content-Type":"text/plain;charset=utf-8"},
+body:JSON.stringify({
+action:"submit",
+repId:localStorage.getItem("repId"),
+submissionId,
+school,
+region:regionVal,
+location:locationVal,
+phone:phoneVal,
+language:languageVal,
+french:frenchVal,
+examType:exam,
+packageOption:packageVal,
+enrollments,
+totalBill:bill.total
+})
+});
+
+let data=await res.json();
+
+if(data.status==="success"){
+showToast("Enrollment submitted");
+}
+
+}catch(err){
+showToast("Server connection failed");
+}
+
+/* SAVE HISTORY */
+
+let history=JSON.parse(localStorage.getItem("history")||"[]");
+
+history.push({
+submissionId,
+school,
+region:regionVal,
+location:locationVal,
+phone:phoneVal,
+language:languageVal,
+french:frenchVal,
+examType:exam,
+packageOption:packageVal,
+enrollments,
+time:new Date().toLocaleString()
+});
+
+/* LIMIT HISTORY TO 50 */
+if(history.length>50){
+history.shift();
+}
+
+localStorage.setItem("history",JSON.stringify(history));
+
+loadHistory();
+
+btn.disabled=false;
+btn.innerText="Submit Enrollment";
+
 }
 
 
-
-function toggleHistory(){ historyBox.style.display=(historyBox.style.display==="block"?"none":"block"); }
 
 function loadHistory(){
 
-  let list=historyList;
-  list.innerHTML="";
+let list=document.getElementById("historyList");
+list.innerHTML="";
 
-  let history=JSON.parse(localStorage.getItem("history")||"[]");
+let history=JSON.parse(localStorage.getItem("history")||"[]");
 
-  history.reverse().forEach(d=>{
+history.reverse().forEach(d=>{
 
-    let li=document.createElement("li");
+let li=document.createElement("li");
 
-    li.className="history-item";
+li.className="history-item";
 
-    li.onclick=function(){
-      editSchool(d);
-    };
+li.onclick=function(){ editSchool(d); };
 
-    li.innerHTML=`
-      <div class="history-left">
-        <b>${d.school}</b>
-        <span>${d.region}</span>
-        <span class="history-time">${d.time}</span>
-      </div>
-    `;
+li.innerHTML=`
+<b>${d.school}</b>
+<span>${d.region}</span>
+<div class="history-time">${d.time}</div>
+`;
 
-    list.appendChild(li);
+list.appendChild(li);
 
-  });
+});
 
 }
-
 
 function editSchool(data){
-  historyBox.style.display="none";
-  formArea.style.display="block";
-  document.getElementById("formHeader").style.display="block";
-  document.getElementById("location").value=data.location;
 
+document.getElementById("historyBox").style.display="none";
 
-  schoolName.value=data.school;
-  region.value=data.region;
-  location.value=data.location;
-  phone.value=data.phone;
-  language.value=data.language;
-  french.value=data.french;
-  examType.value=data.examType;
+document.getElementById("schoolName").value=data.school;
+document.getElementById("region").value=data.region;
+document.getElementById("location").value=data.location;
+document.getElementById("phone").value=data.phone;
+document.getElementById("language").value=data.language;
+document.getElementById("french").value=data.french;
+document.getElementById("examType").value=data.examType;
 
-  toggleClasses();
-  setTimeout(()=>{
-    for(let k in data.enrollments){
-      let el=document.getElementById(k); if(el) el.value=data.enrollments[k];
-    }
-  },200);
+toggleClasses();
 
-  window.scrollTo({top:0,behavior:"smooth"});
+setTimeout(()=>{
+
+for(let k in data.enrollments){
+let el=document.getElementById(k);
+if(el) el.value=data.enrollments[k];
 }
 
-function shareWhatsApp(){ window.open(`https://wa.me/?text=${encodeURIComponent(summaryText.innerText)}`); }
-function shareSMS(){ window.open(`sms:?body=${encodeURIComponent(summaryText.innerText)}`); }
+},200);
+
+window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function toggleHistory(){
+let box=document.getElementById("historyBox");
+box.style.display=(box.style.display==="block"?"none":"block");
+}
+
+function reloadForm(){
+document.querySelectorAll("input").forEach(i=>i.value="");
+document.querySelectorAll("select").forEach(s=>s.selectedIndex=0);
+document.getElementById("classArea").innerHTML="";
+}
+
+function shareWhatsApp(){
+window.open(`https://wa.me/?text=${encodeURIComponent(summaryText.innerText)}`);
+}
+
+function shareSMS(){
+window.open(`sms:?body=${encodeURIComponent(summaryText.innerText)}`);
+}
+
 </script>
 
 </body>
