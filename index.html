@@ -52,7 +52,7 @@ margin:6px 0;
 border-radius:7px;
 border:1px solid #d7dce5;
 font-size:16px;
-font-size:16px;
+/* font-size:16px; */
 line-height:1.4;
 display:block;
 }
@@ -439,7 +439,7 @@ enrollments[i.id]=Number(i.value)||0;
 /* CORRECT BILL CALCULATION */
 let bill=calculateBill(enrollments,exam,packageVal);
 
-let submissionId=Date.now();
+let submissionId = window.currentSubmissionId || Date.now();
 
 try{
 
@@ -468,6 +468,9 @@ let data=await res.json();
 if(data.status==="success"){
 
 showToast("Enrollment submitted");
+
+// RESET EDIT MODE (VERY IMPORTANT)
+window.currentSubmissionId = null;
 
 // CLEAR FORM AFTER SUCCESS
 document.getElementById("formHeader").innerText="Register New School";
@@ -543,8 +546,9 @@ list.appendChild(li);
 });
 
 }
-
 function editSchool(data){
+
+window.currentSubmissionId = data.submissionId;
 
 document.getElementById("historyBox").style.display="none";
 
@@ -569,6 +573,8 @@ if(el) el.value=data.enrollments[k];
 
 window.scrollTo({top:0,behavior:"smooth"});
 }
+
+
 
 function toggleHistory(){
 let box=document.getElementById("historyBox");
