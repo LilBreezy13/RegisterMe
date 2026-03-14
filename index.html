@@ -214,7 +214,7 @@ color:#666;
 
 <input id="location" placeholder="Location">
 
-<input id="phone" maxlength="10" placeholder="Contact">
+<input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="Contact">
 
 <select id="language">
 <option value="">Select Ghanaian Languages</option>
@@ -343,7 +343,7 @@ if(type==="mock"){
 
 document.getElementById("packageOption").disabled=false;
 
-area.innerHTML=`<input type="number" id="b9" placeholder="Basic 9 Enrollment">`;
+area.innerHTML=`<input type="tel" inputmode="numeric" pattern="[0-9]*" id="b9" placeholder="Basic 9 Enrollment">`;
 
 }
 
@@ -353,7 +353,7 @@ document.getElementById("packageOption").value="B";
 document.getElementById("packageOption").disabled=true;
 
 classes.forEach(c=>{
-area.innerHTML+=`<input type="number" id="${c[0]}" placeholder="${c[1]} Enrollment">`;
+area.innerHTML+=`<input type="tel" inputmode="numeric" pattern="[0-9]*" id="${c[0]}" placeholder="${c[1]} Enrollment">`;
 });
 
 }
@@ -578,6 +578,14 @@ window.open(`https://wa.me/?text=${encodeURIComponent(summaryText.innerText)}`);
 function shareSMS(){
 window.open(`sms:?body=${encodeURIComponent(summaryText.innerText)}`);
 }
+
+document.addEventListener("focusin", function(e){
+if(e.target.tagName === "INPUT" || e.target.tagName === "SELECT"){
+setTimeout(()=>{
+e.target.scrollIntoView({behavior:"smooth", block:"center"});
+},300);
+}
+});
 
 </script>
 
