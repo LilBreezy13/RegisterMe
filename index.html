@@ -466,9 +466,19 @@ totalBill:bill.total
 let data=await res.json();
 
 if(data.status==="success"){
-showToast("Enrollment submitted");
-}
 
+showToast("Enrollment submitted");
+
+// CLEAR FORM AFTER SUCCESS
+document.getElementById("formHeader").innerText="Register New School";
+
+document.querySelectorAll("#formArea input").forEach(i=>i.value="");
+document.querySelectorAll("#formArea select").forEach(s=>s.selectedIndex=0);
+
+document.getElementById("classArea").innerHTML="";
+document.getElementById("summarySection").style.display="none";
+
+}
 }catch(err){
 showToast("Server connection failed");
 }
