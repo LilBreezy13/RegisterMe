@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Enrollment Portal</title>
-
 <style>
 
-*{box-sizing:border-box;}
+*{
+box-sizing:border-box;
+}
 
 body{
 font-family:Arial,Helvetica,sans-serif;
 background:linear-gradient(135deg,#e8edf5,#dfe6f2);
 margin:0;
-padding:15px 10px;
-display:block;
+padding:15px;
 overflow-x:hidden;
 }
 
 html,body{
-max-width:100%;
+width:100%;
 overflow-x:hidden;
 }
 
 .card{
 background:white;
-padding:16px;
 width:100%;
 max-width:420px;
 margin:auto;
+padding:16px;
 border-radius:12px;
 box-shadow:0 8px 25px rgba(0,0,0,0.08);
 }
@@ -42,11 +42,11 @@ color:#0d1b66;
 background:#f9fafc;
 padding:14px;
 border-radius:10px;
+width:100%;
 }
 
 input,select{
 width:100%;
-max-width:100%;
 padding:11px;
 margin:6px 0;
 border-radius:7px;
@@ -54,7 +54,6 @@ border:1px solid #d7dce5;
 font-size:14px;
 display:block;
 }
-
 
 button{
 width:100%;
@@ -65,9 +64,12 @@ border:none;
 border-radius:8px;
 margin-top:10px;
 cursor:pointer;
+font-size:14px;
 }
 
-button:hover{background:#1c2e96;}
+button:hover{
+background:#1c2e96;
+}
 
 button:disabled{
 background:gray;
@@ -82,7 +84,9 @@ margin-top:15px;
 font-size:14px;
 }
 
-.summary div{margin-top:6px;}
+.summary div{
+margin-top:6px;
+}
 
 .shareBtns{
 margin-top:12px;
@@ -141,6 +145,11 @@ margin-top:3px;
 #classArea{
 max-height:250px;
 overflow-y:auto;
+width:100%;
+}
+
+#classArea input{
+width:100%;
 }
 
 #toast{
@@ -156,7 +165,9 @@ opacity:0;
 transition:.3s;
 }
 
-#toast.show{opacity:1;}
+#toast.show{
+opacity:1;
+}
 
 .footer{
 text-align:center;
@@ -165,41 +176,6 @@ font-size:11px;
 color:#666;
 }
 
-
-#classArea input{
-width:100%;
-max-width:100%;
-}
-
-
-/* ===== MOBILE TIGHT FIX ===== */
-
-@media (max-width:480px){
-
-.card{
-padding:12px;
-border-radius:10px;
-}
-
-#formArea{
-padding:10px;
-}
-
-input,select{
-padding:9px;
-margin:4px 0;
-font-size:13px;
-}
-
-button{
-padding:10px;
-}
-
-#classArea{
-max-height:220px;
-}
-
-}
 </style>
 </head>
 
