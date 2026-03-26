@@ -299,11 +299,15 @@ t.classList.add("show");
 setTimeout(()=>t.classList.remove("show"),2000);
 }
 
+
+
 async function login(){
 
 let btn=document.getElementById("loginBtn");
 btn.disabled=true;
 btn.innerText="Logging in...";
+
+let rep=document.getElementById("repId").value;
 
 try{
 
@@ -312,7 +316,7 @@ method:"POST",
 headers:{ "Content-Type":"text/plain;charset=utf-8"},
 body:JSON.stringify({
 action:"login",
-repId:document.getElementById("repId").value,
+repId:rep,
 pin:document.getElementById("repPin").value
 })
 });
@@ -321,11 +325,13 @@ let data=await res.json();
 
 if(data.status==="ok"){
 
-localStorage.setItem("repId",document.getElementById("repId").value);
+localStorage.setItem("repId",rep);
 
+/* LOAD UI IMMEDIATELY */
 loginBox.style.display="none";
 appBox.style.display="block";
 
+/* LOAD HISTORY PER REP */
 loadHistory();
 
 showToast("Login successful");
@@ -341,7 +347,6 @@ showToast("Connection error");
 btn.disabled=false;
 btn.innerText="Login";
 }
-
 function toggleClasses(){
 
 let type=document.getElementById("examType").value;
@@ -471,35 +476,49 @@ examType:exam,
 packageOption:packageVal,
 enrollments,
 totalBill:bill.total
-})
+}),
+keepalive:true
 });
 
 let data=await res.json();
 
 if(data.status==="success"){
 
-showToast("Enrollment submitted");
+  showToast("Enrollment submitted");
 
-// RESET EDIT MODE (VERY IMPORTANT)
-window.currentSubmissionId = null;
+/* BUILD SUMMARY */
+let summaryHTML="";
 
-// CLEAR FORM AFTER SUCCESS
-document.getElementById("formHeader").innerText="Register New School";
-
-document.querySelectorAll("#formArea input").forEach(i=>i.value="");
-document.querySelectorAll("#formArea select").forEach(s=>s.selectedIndex=0);
-
-document.getElementById("classArea").innerHTML="";
-document.getElementById("summarySection").style.display="none";
-
+for(let c in bill.categories){
+summaryHTML += `<div>${c}: GHS ${bill.categories[c]}</div>`;
 }
+
+summaryHTML += `<hr><b>Total: GHS ${bill.total}</b>`;
+
+/* SHOW SUMMARY */
+document.getElementById("summaryText").innerHTML = summaryHTML;
+document.getElementById("summarySection").style.display="block";
+
+/* scroll down */
+document.getElementById("summarySection").scrollIntoView({
+behavior:"smooth"
+});
+
+
+/* CLEAR FORM */
+reloadForm();
+}
+
+
 }catch(err){
 showToast("Server connection failed");
 }
 
 /* SAVE HISTORY */
 
-let history=JSON.parse(localStorage.getItem("history")||"[]");
+let rep = localStorage.getItem("repId");
+let historyKey = "history_"+rep;
+let history=JSON.parse(localStorage.getItem(historyKey)||"[]");
 
 history.push({
 submissionId,
@@ -520,7 +539,7 @@ if(history.length>50){
 history.shift();
 }
 
-localStorage.setItem("history",JSON.stringify(history));
+localStorage.setItem(historyKey,JSON.stringify(history));
 
 loadHistory();
 
@@ -536,9 +555,11 @@ function loadHistory(){
 let list=document.getElementById("historyList");
 list.innerHTML="";
 
-let history=JSON.parse(localStorage.getItem("history")||"[]");
+let rep = localStorage.getItem("repId");
+let historyKey = "history_"+rep;
+let history=JSON.parse(localStorage.getItem(historyKey)||"[]");
 
-history.reverse().forEach(d=>{
+[...history].reverse().forEach(d=>{
 
 let li=document.createElement("li");
 
@@ -588,14 +609,24 @@ window.scrollTo({top:0,behavior:"smooth"});
 
 
 function toggleHistory(){
+
+/* HIDE SUMMARY */
+document.getElementById("summarySection").style.display="none";
+
 let box=document.getElementById("historyBox");
 box.style.display=(box.style.display==="block"?"none":"block");
 }
-
 function reloadForm(){
+
+window.currentSubmissionId = null;
+
+/* CLEAR FORM */
 document.querySelectorAll("input").forEach(i=>i.value="");
 document.querySelectorAll("select").forEach(s=>s.selectedIndex=0);
 document.getElementById("classArea").innerHTML="";
+
+/* HIDE SUMMARY */
+document.getElementById("summarySection").style.display="none";
 }
 
 function shareWhatsApp(){
