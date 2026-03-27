@@ -620,11 +620,33 @@ document.getElementById("classArea").innerHTML="";
 }
 
 function shareWhatsApp(){
-window.open(`https://wa.me/?text=${encodeURIComponent(summaryText.innerText)}`);
+
+let school = document.getElementById("summaryText").dataset.school;
+let message = buildMessage(school);
+
+window.open(`https://wa.me/?text=${encodeURIComponent(message)}`);
 }
 
 function shareSMS(){
-window.open(`sms:?body=${encodeURIComponent(summaryText.innerText)}`);
+
+let school = document.getElementById("summaryText").dataset.school;
+let message = buildMessage(school);
+
+window.open(`sms:?body=${encodeURIComponent(message)}`);
+}
+
+function buildMessage(school){
+
+let text = summaryText.innerText;
+
+return `School Name: ${school}
+
+${text}
+
+Kindly pay through this momo line 
+0247448883(Bacon Atsu Amengor / Best Brain Examinations Konsortium) 
+
+NB: Please use the name of your school as reference when making payments and send us a screenshot for confirmation.`;
 }
 
 document.addEventListener("focusin", function(e){
