@@ -348,6 +348,7 @@ showToast("Connection error");
 btn.disabled=false;
 btn.innerText="Login";
 }
+
 function toggleClasses(){
 
 let type=document.getElementById("examType").value;
@@ -475,7 +476,7 @@ behavior:"smooth"
 });
 
 // ✅ CLEAR FORM IMMEDIATELY
-reloadForm();
+reloadForm(false);
 
 
 // ✅ ENABLE BUTTON IMMEDIATELY
@@ -609,16 +610,23 @@ let box=document.getElementById("historyBox");
 box.style.display=(box.style.display==="block"?"none":"block");
 }
 
-function reloadForm(){
+function reloadForm(hideSummary = true){
 
 window.currentSubmissionId = null;
 
-/* CLEAR FORM ONLY */
+/* CLEAR FORM */
 document.querySelectorAll("#formArea input").forEach(i=>i.value="");
 document.querySelectorAll("#formArea select").forEach(s=>s.selectedIndex=0);
 document.getElementById("classArea").innerHTML="";
 
-/* DO NOT HIDE SUMMARY */
+/* RESET DISABLED STATES */
+document.getElementById("packageOption").disabled = false;
+
+/* ✅ CONTROL SUMMARY VISIBILITY */
+if(hideSummary){
+document.getElementById("summarySection").style.display = "none";
+}
+
 }
 
 function shareWhatsApp(){
