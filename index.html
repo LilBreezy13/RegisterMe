@@ -455,8 +455,9 @@ let bill=calculateBill(enrollments);
 let submissionId = window.currentSubmissionId || Date.now();
 
 
-// ✅ SHOW SUMMARY IMMEDIATELY (no waiting)
 let summaryHTML="";
+
+summaryHTML += `<div><b>School:</b> ${school}</div><hr>`;
 
 for(let c in bill.categories){
 summaryHTML += `<div>${c}: GHS ${bill.categories[c]}</div>`;
@@ -465,12 +466,13 @@ summaryHTML += `<div>${c}: GHS ${bill.categories[c]}</div>`;
 summaryHTML += `<hr><b>Total: GHS ${bill.total}</b>`;
 
 document.getElementById("summaryText").innerHTML = summaryHTML;
+document.getElementById("summaryText").dataset.school = school;
+
 document.getElementById("summarySection").style.display="block";
 
 document.getElementById("summarySection").scrollIntoView({
 behavior:"smooth"
 });
-
 
 // ✅ CLEAR FORM IMMEDIATELY
 reloadForm();
@@ -656,6 +658,8 @@ e.target.scrollIntoView({behavior:"smooth", block:"center"});
 },300);
 }
 });
+
+
 
 </script>
 
