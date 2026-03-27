@@ -288,6 +288,7 @@ Registration Portal • Sales Rep System
 
 <div id="toast"></div>
 
+
 <script>
 
 const API_URL="https://script.google.com/macros/s/AKfycbzxvsVdlAQPrN2LGXgqs7rDW9m0VuSRCyzKWVyt5i6BDqG48O3xSK5QpDm6sVmNnHE/exec";
@@ -425,7 +426,6 @@ let languageVal=document.getElementById("language").value;
 let frenchVal=document.getElementById("french").value;
 let packageVal=document.getElementById("packageOption").value;
 
-/* REQUIRED FIELD CHECK */
 if(!school||!regionVal||!locationVal||!phoneVal||!exam||!languageVal||!frenchVal){
 showToast("Fill all fields");
 btn.disabled=false;
@@ -433,7 +433,6 @@ btn.innerText="Submit Enrollment";
 return;
 }
 
-/* MOCK OPTION REQUIRED */
 if(exam==="mock" && packageVal===""){
 showToast("Select Option A, B or C for Mock");
 btn.disabled=false;
@@ -441,7 +440,6 @@ btn.innerText="Submit Enrollment";
 return;
 }
 
-/* TERMINAL AUTO OPTION B */
 if(exam==="terminal"){
 packageVal="B";
 }
@@ -452,14 +450,39 @@ document.querySelectorAll("#classArea input").forEach(i=>{
 enrollments[i.id]=Number(i.value)||0;
 });
 
-/* CORRECT BILL CALCULATION */
-let bill=calculateBill(enrollments,exam,packageVal);
+let bill=calculateBill(enrollments);
 
 let submissionId = window.currentSubmissionId || Date.now();
 
-try{
 
-let res=await fetch(API_URL,{
+// ✅ SHOW SUMMARY IMMEDIATELY (no waiting)
+let summaryHTML="";
+
+for(let c in bill.categories){
+summaryHTML += `<div>${c}: GHS ${bill.categories[c]}</div>`;
+}
+
+summaryHTML += `<hr><b>Total: GHS ${bill.total}</b>`;
+
+document.getElementById("summaryText").innerHTML = summaryHTML;
+document.getElementById("summarySection").style.display="block";
+
+document.getElementById("summarySection").scrollIntoView({
+behavior:"smooth"
+});
+
+
+// ✅ CLEAR FORM IMMEDIATELY
+reloadForm();
+
+
+// ✅ ENABLE BUTTON IMMEDIATELY
+btn.disabled=false;
+btn.innerText="Submit Enrollment";
+
+
+// ✅ SEND TO SERVER IN BACKGROUND (no delay)
+fetch(API_URL,{
 method:"POST",
 headers:{ "Content-Type":"text/plain;charset=utf-8"},
 body:JSON.stringify({
@@ -478,43 +501,17 @@ enrollments,
 totalBill:bill.total
 }),
 keepalive:true
-});
-
-let data=await res.json();
-
+})
+.then(res=>res.json())
+.then(data=>{
 if(data.status==="success"){
-
-  showToast("Enrollment submitted");
-
-/* BUILD SUMMARY */
-let summaryHTML="";
-
-for(let c in bill.categories){
-summaryHTML += `<div>${c}: GHS ${bill.categories[c]}</div>`;
+showToast("Enrollment submitted");
 }
-
-summaryHTML += `<hr><b>Total: GHS ${bill.total}</b>`;
-
-/* SHOW SUMMARY */
-document.getElementById("summaryText").innerHTML = summaryHTML;
-document.getElementById("summarySection").style.display="block";
-
-/* scroll down */
-document.getElementById("summarySection").scrollIntoView({
-behavior:"smooth"
-});
+})
+.catch(()=>showToast("Server connection failed"));
 
 
-
-}
-
-
-}catch(err){
-showToast("Server connection failed");
-}
-
-/* SAVE HISTORY */
-
+// SAVE HISTORY
 let rep = localStorage.getItem("repId");
 let historyKey = "history_"+rep;
 let history=JSON.parse(localStorage.getItem(historyKey)||"[]");
@@ -533,20 +530,14 @@ enrollments,
 time:new Date().toLocaleString()
 });
 
-/* LIMIT HISTORY TO 50 */
 if(history.length>50){
 history.shift();
 }
 
 localStorage.setItem(historyKey,JSON.stringify(history));
-
 loadHistory();
 
-btn.disabled=false;
-btn.innerText="Submit Enrollment";
-
 }
-
 
 
 function loadHistory(){
@@ -615,17 +606,17 @@ document.getElementById("summarySection").style.display="none";
 let box=document.getElementById("historyBox");
 box.style.display=(box.style.display==="block"?"none":"block");
 }
+
 function reloadForm(){
 
 window.currentSubmissionId = null;
 
-/* CLEAR FORM */
-document.querySelectorAll("input").forEach(i=>i.value="");
-document.querySelectorAll("select").forEach(s=>s.selectedIndex=0);
+/* CLEAR FORM ONLY */
+document.querySelectorAll("#formArea input").forEach(i=>i.value="");
+document.querySelectorAll("#formArea select").forEach(s=>s.selectedIndex=0);
 document.getElementById("classArea").innerHTML="";
 
-/* HIDE SUMMARY */
-document.getElementById("summarySection").style.display="none";
+/* DO NOT HIDE SUMMARY */
 }
 
 function shareWhatsApp(){
