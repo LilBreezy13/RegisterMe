@@ -281,7 +281,7 @@ color:#666;
 </div>
 
 <div class="footer">
-Registration Portal • Sales Rep System
+Registration Portal • Designed by Nick 
 </div>
 
 </div>
@@ -326,7 +326,7 @@ let data=await res.json();
 
 if(data.status==="ok"){
 
-localStorage.setItem("repId",rep);
+localStorage.setItem("token", data.token);
 
 /* LOAD UI IMMEDIATELY */
 loginBox.style.display="none";
@@ -479,18 +479,18 @@ behavior:"smooth"
 reloadForm(false);
 
 
-// ✅ ENABLE BUTTON IMMEDIATELY
+//  ENABLE BUTTON IMMEDIATELY
 btn.disabled=false;
 btn.innerText="Submit Enrollment";
 
 
-// ✅ SEND TO SERVER IN BACKGROUND (no delay)
+//  SEND TO SERVER IN BACKGROUND (no delay)
 fetch(API_URL,{
 method:"POST",
 headers:{ "Content-Type":"text/plain;charset=utf-8"},
 body:JSON.stringify({
 action:"submit",
-repId:localStorage.getItem("repId"),
+token: localStorage.getItem("token"),
 submissionId,
 school,
 region:regionVal,
