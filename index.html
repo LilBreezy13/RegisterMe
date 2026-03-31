@@ -285,7 +285,7 @@ flex:1;
 
 <input id="location" placeholder="Location">
 
-<input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="Contact">
+<input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="0509967235">
 
 <div class="lang-row">
 <select id="language">
@@ -536,31 +536,70 @@ async function submitEnrollment() {
         enrollments[i.id] = Number(i.value) || 0;
     });
 
-    // HANDLE LANGUAGE VALUES
-    let languageVal = "";
-    const languageInputs = document.querySelectorAll("#languageEnrollments input");
+ // HANDLE LANGUAGE VALUES
+let languageVal = "";
+const languageInputs = document.querySelectorAll("#languageEnrollments input");
 
-    if (exam === "mock") {
-        if (selectedLangs.length === 1) {
-            languageVal = `${selectedLangs[0]}(${enrollments.b9 || 0})`;
-        } else {
-            let totalLang = 0;
-            languageVal = selectedLangs.map((lang, i) => {
-                const val = languageInputs[i] ? Number(languageInputs[i].value) : 0;
-                totalLang += val;
-                return `${lang}(${val})`;
-            }).join(", ");
+if (exam === "mock") {
 
-            if (totalLang > (enrollments.b9 || 0)) {
-                showToast("Language enrollment cannot exceed Basic 9 total");
-                btn.disabled = false;
-                btn.innerText = "Submit Enrollment";
-                return;
-            }
-        }
-    } else {
-        languageVal = selectedLangs.join(", ");
+    if (selectedLangs.length === 0) {
+        showToast("Select at least one language");
+        btn.disabled=false;
+        btn.innerText="Submit Enrollment";
+        return;
     }
+
+    let totalLang = 0;
+    let langParts = [];
+
+    for (let i = 0; i < selectedLangs.length; i++) {
+
+        let raw = languageInputs[i] ? languageInputs[i].value.trim() : "";
+
+        // ❌ EMPTY FIELD CHECK (this is the important fix)
+        if (raw === "") {
+            showToast("Enter enrollment for " + selectedLangs[i]);
+            btn.disabled=false;
+            btn.innerText="Submit Enrollment";
+            return;
+        }
+
+        let val = Number(raw);
+
+        // ❌ ZERO OR NEGATIVE CHECK
+        if (val <= 0) {
+            showToast("Enrollment must be greater than 0 for " + selectedLangs[i]);
+            btn.disabled=false;
+            btn.innerText="Submit Enrollment";
+            return;
+        }
+
+        totalLang += val;
+        langParts.push(`${selectedLangs[i]}(${val})`);
+    }
+
+    let mockTotal = (enrollments.b9 || 0);
+
+// ❌ greater than mock
+if (totalLang > mockTotal) {
+    showToast(`Languages must total ${mockTotal}`);
+    btn.disabled=false;
+    btn.innerText="Submit Enrollment";
+    return;
+}
+
+// ❌ less than mock
+if (totalLang < mockTotal) {
+    showToast(`Languages must total ${mockTotal}`);
+    btn.disabled=false;
+    btn.innerText="Submit Enrollment";
+    return;
+}
+    languageVal = langParts.join(", ");
+
+} else {
+    languageVal = selectedLangs.join(", ");
+}
 
     // CALCULATE BILL
     const bill = calculateBill(enrollments);
@@ -807,7 +846,9 @@ function renderLanguages(){
 
         // Always show an enrollment input for every selected language
         let input = document.createElement("input");
-        input.type = "tel";
+      input.type = "number";
+input.min = "1";
+input.required = true;
         input.placeholder = `${lang} enrollment`;
         input.inputMode = "numeric";
         input.pattern = "[0-9]*";
@@ -816,6 +857,9 @@ function renderLanguages(){
 
     inputBox.appendChild(wrapper);
 }
+
+
+
 </script>
 
 </body>
