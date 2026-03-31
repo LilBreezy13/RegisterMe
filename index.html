@@ -178,6 +178,56 @@ font-size:11px;
 color:#666;
 }
 
+.lang-row{
+display:flex;
+gap:6px;
+align-items:center;
+}
+
+.lang-add{
+width:34px;
+height:34px;
+border-radius:6px;
+padding:0;
+font-size:18px;
+background:#0d1b66;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+#selectedLanguages{
+display:flex;
+flex-wrap:wrap;
+gap:5px;
+margin-top:6px;
+}
+
+.lang-chip{
+background:#eef1fb;
+padding:5px 8px;
+border-radius:6px;
+font-size:12px;
+display:flex;
+align-items:center;
+gap:5px;
+}
+
+.lang-chip span{
+cursor:pointer;
+font-weight:bold;
+}
+
+.lang-inputs{
+display:flex;
+gap:6px;
+margin-top:6px;
+}
+
+.lang-inputs input{
+flex:1;
+}
+
 
 </style>
 </head>
@@ -237,8 +287,9 @@ color:#666;
 
 <input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="Contact">
 
+<div class="lang-row">
 <select id="language">
-<option value="">Select Ghanaian Languages</option>
+<option value="">Select Ghanaian Language</option>
 <option>Asante Twi</option>
 <option>Akuapem Twi</option>
 <option>Ga</option>
@@ -252,11 +303,19 @@ color:#666;
 <option>Nzema</option>
 </select>
 
+<button type="button" class="lang-add" onclick="addLanguage()">+</button>
+</div>
+
+<div id="selectedLanguages"></div>
+<div id="languageEnrollments"></div>
+ <!-- FRENCH SELECTOR  -->
 <select id="french">
 <option value="No">French: No</option>
 <option value="Yes">French: Yes</option>
 </select>
 
+
+<!-- PACKAGE SELECTOR -->
 <select id="packageOption">
 <option value="">Select Package Option</option>
 <option value="A">Option A - Premium Pack</option>
@@ -267,7 +326,7 @@ color:#666;
 <select id="examType" onchange="toggleClasses()">
 <option value="">Exam Type</option>
 <option value="mock">Mock</option>
-<option value="terminal">Terminal</option>
+<!-- <option value="terminal">Terminal</option> -->
 </select>
 
 <div id="classArea"></div>
@@ -306,7 +365,7 @@ Registration Portal • Designed by Nick
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbzxvsVdlAQPrN2LGXgqs7rDW9m0VuSRCyzKWVyt5i6BDqG48O3xSK5QpDm6sVmNnHE/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbzIQLnIrh_4k8Yd5T1rZF-XW3sriCdGPokev-iNwDyTjpv3VAasq2WZlqTIj2jSWYUb/exec";
 
 function showToast(msg){
 let t=document.getElementById("toast");
@@ -366,6 +425,12 @@ btn.innerText="Login";
 
 function toggleClasses(){
 
+
+    // RESET LANGUAGES WHEN EXAM TYPE CHANGES
+selectedLangs=[];
+document.getElementById("selectedLanguages").innerHTML="";
+document.getElementById("languageEnrollments").innerHTML="";
+
 let type=document.getElementById("examType").value;
 let area=document.getElementById("classArea");
 area.innerHTML="";
@@ -421,142 +486,156 @@ total+=20;
 return {categories,total};
 }
 
+async function submitEnrollment() {
+    if (!localStorage.getItem("token")) {
+        showToast("Session expired");
+        return;
+    }
 
-async function submitEnrollment(){
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.innerText = "Submitting...";
 
-if(!localStorage.getItem("token")){
-showToast("Session expired");
-return;
+    const school = document.getElementById("schoolName").value.trim();
+    const regionVal = document.getElementById("region").value;
+    const locationVal = document.getElementById("location").value.trim();
+    const phoneVal = document.getElementById("phone").value.trim();
+    const exam = document.getElementById("examType").value;
+    const frenchVal = document.getElementById("french").value;
+    let packageVal = document.getElementById("packageOption").value;
+
+    // VALIDATE REQUIRED FIELDS
+    if (!school || !regionVal || !locationVal || !phoneVal || !exam || !frenchVal) {
+        showToast("Fill all fields");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
+
+    if (selectedLangs.length === 0) {
+        showToast("Select at least one language");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
+
+    if (exam === "mock" && !packageVal) {
+        showToast("Select Option A, B or C for Mock");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
+
+    if (exam === "terminal") {
+        packageVal = "B"; // Force terminal to B
+    }
+
+    // COLLECT ENROLLMENTS
+    const enrollments = {};
+    document.querySelectorAll("#classArea input").forEach(i => {
+        enrollments[i.id] = Number(i.value) || 0;
+    });
+
+    // HANDLE LANGUAGE VALUES
+    let languageVal = "";
+    const languageInputs = document.querySelectorAll("#languageEnrollments input");
+
+    if (exam === "mock") {
+        if (selectedLangs.length === 1) {
+            languageVal = `${selectedLangs[0]}(${enrollments.b9 || 0})`;
+        } else {
+            let totalLang = 0;
+            languageVal = selectedLangs.map((lang, i) => {
+                const val = languageInputs[i] ? Number(languageInputs[i].value) : 0;
+                totalLang += val;
+                return `${lang}(${val})`;
+            }).join(", ");
+
+            if (totalLang > (enrollments.b9 || 0)) {
+                showToast("Language enrollment cannot exceed Basic 9 total");
+                btn.disabled = false;
+                btn.innerText = "Submit Enrollment";
+                return;
+            }
+        }
+    } else {
+        languageVal = selectedLangs.join(", ");
+    }
+
+    // CALCULATE BILL
+    const bill = calculateBill(enrollments);
+    const submissionId = window.currentSubmissionId || Date.now();
+
+    // BUILD SUMMARY HTML
+    let summaryHTML = `<div><b>School:</b> ${school}</div><hr>`;
+    for (let c in bill.categories) {
+        summaryHTML += `<div>${c}: GHS ${bill.categories[c]}</div>`;
+    }
+    summaryHTML += `<hr><b>Total: GHS ${bill.total}</b>`;
+
+    const summarySection = document.getElementById("summarySection");
+    const summaryText = document.getElementById("summaryText");
+    summaryText.innerHTML = summaryHTML;
+    summaryText.dataset.school = school;
+    summarySection.style.display = "block";
+    summarySection.scrollIntoView({ behavior: "smooth" });
+
+    // CLEAR FORM IMMEDIATELY
+    reloadForm(false);
+
+    btn.disabled = false;
+    btn.innerText = "Submit Enrollment";
+
+    // SEND TO SERVER IN BACKGROUND
+    fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+            action: "submit",
+            token: localStorage.getItem("token"),
+            submissionId,
+            school,
+            region: regionVal,
+            location: locationVal,
+            phone: phoneVal,
+            language: languageVal,
+            french: frenchVal,
+            examType: exam,
+            packageOption: packageVal,
+            enrollments,
+            totalBill: bill.total
+        }),
+        keepalive: true
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") showToast("Enrollment submitted");
+    })
+    .catch(() => showToast("Server connection failed"));
+
+    // SAVE HISTORY LOCALLY
+    const rep = localStorage.getItem("repId");
+    const historyKey = "history_" + rep;
+    const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+
+    history.push({
+        submissionId,
+        school,
+        region: regionVal,
+        location: locationVal,
+        phone: phoneVal,
+        language: languageVal,
+        french: frenchVal,
+        examType: exam,
+        packageOption: packageVal,
+        enrollments,
+        time: new Date().toLocaleString()
+    });
+
+    if (history.length > 50) history.shift();
+    localStorage.setItem(historyKey, JSON.stringify(history));
+    loadHistory();
 }
-
-let btn=document.getElementById("submitBtn");
-btn.disabled=true;
-btn.innerText="Submitting...";
-
-let school=document.getElementById("schoolName").value.trim();
-let regionVal=document.getElementById("region").value;
-let locationVal=document.getElementById("location").value.trim();
-let phoneVal=document.getElementById("phone").value.trim();
-let exam=document.getElementById("examType").value;
-let languageVal=document.getElementById("language").value;
-let frenchVal=document.getElementById("french").value;
-let packageVal=document.getElementById("packageOption").value;
-
-if(!school||!regionVal||!locationVal||!phoneVal||!exam||!languageVal||!frenchVal){
-showToast("Fill all fields");
-btn.disabled=false;
-btn.innerText="Submit Enrollment";
-return;
-}
-
-if(exam==="mock" && packageVal===""){
-showToast("Select Option A, B or C for Mock");
-btn.disabled=false;
-btn.innerText="Submit Enrollment";
-return;
-}
-
-if(exam==="terminal"){
-packageVal="B";
-}
-
-let enrollments={};
-
-document.querySelectorAll("#classArea input").forEach(i=>{
-enrollments[i.id]=Number(i.value)||0;
-});
-
-let bill=calculateBill(enrollments);
-
-let submissionId = window.currentSubmissionId || Date.now();
-
-
-let summaryHTML="";
-
-summaryHTML += `<div><b>School:</b> ${school}</div><hr>`;
-
-for(let c in bill.categories){
-summaryHTML += `<div>${c}: GHS ${bill.categories[c]}</div>`;
-}
-
-summaryHTML += `<hr><b>Total: GHS ${bill.total}</b>`;
-
-document.getElementById("summaryText").innerHTML = summaryHTML;
-document.getElementById("summaryText").dataset.school = school;
-
-document.getElementById("summarySection").style.display="block";
-
-document.getElementById("summarySection").scrollIntoView({
-behavior:"smooth"
-});
-
-// ✅ CLEAR FORM IMMEDIATELY
-reloadForm(false);
-
-
-//  ENABLE BUTTON IMMEDIATELY
-btn.disabled=false;
-btn.innerText="Submit Enrollment";
-
-
-//  SEND TO SERVER IN BACKGROUND (no delay)
-fetch(API_URL,{
-method:"POST",
-headers:{ "Content-Type":"text/plain;charset=utf-8"},
-body:JSON.stringify({
-action:"submit",
-token: localStorage.getItem("token"),
-submissionId,
-school,
-region:regionVal,
-location:locationVal,
-phone:phoneVal,
-language:languageVal,               
-french:frenchVal,
-examType:exam,
-packageOption:packageVal,
-enrollments,
-totalBill:bill.total
-}),
-keepalive:true
-})
-.then(res=>res.json())
-.then(data=>{
-if(data.status==="success"){
-showToast("Enrollment submitted");
-}
-})
-.catch(()=>showToast("Server connection failed"));
-
-
-// SAVE HISTORY
-let rep = localStorage.getItem("repId");
-let historyKey = "history_"+rep;
-let history=JSON.parse(localStorage.getItem(historyKey)||"[]");
-
-history.push({
-submissionId,
-school,
-region:regionVal,
-location:locationVal,
-phone:phoneVal,
-language:languageVal,
-french:frenchVal,
-examType:exam,
-packageOption:packageVal,
-enrollments,
-time:new Date().toLocaleString()
-});
-
-if(history.length>50){
-history.shift();
-}
-
-localStorage.setItem(historyKey,JSON.stringify(history));
-loadHistory();
-
-}
-
 
 function loadHistory(){
 
@@ -642,6 +721,10 @@ if(hideSummary){
 document.getElementById("summarySection").style.display = "none";
 }
 
+// CLEAR LANGUAGES
+selectedLangs = [];
+document.getElementById("selectedLanguages").innerHTML = "";
+document.getElementById("languageEnrollments").innerHTML = "";
 }
 
 function shareWhatsApp(){
@@ -684,6 +767,55 @@ e.target.scrollIntoView({behavior:"smooth", block:"center"});
 
 
 
+let selectedLangs = [];
+
+function addLanguage(){
+
+let select = document.getElementById("language");
+let val = select.value;
+
+if(!val) return;
+if(selectedLangs.includes(val)) return;
+
+selectedLangs.push(val);
+select.value="";
+
+renderLanguages();
+}
+
+function removeLanguage(lang){
+selectedLangs = selectedLangs.filter(l => l !== lang);
+renderLanguages();
+}
+
+function renderLanguages(){
+    let chipBox = document.getElementById("selectedLanguages");
+    let inputBox = document.getElementById("languageEnrollments");
+
+    chipBox.innerHTML = "";
+    inputBox.innerHTML = "";
+
+    let wrapper = document.createElement("div");
+    wrapper.className = "lang-inputs";
+
+    selectedLangs.forEach(lang => {
+        // Show chip
+        chipBox.innerHTML += `
+        <div class="lang-chip">
+            ${lang} <span onclick="removeLanguage('${lang}')">×</span>
+        </div>`;
+
+        // Always show an enrollment input for every selected language
+        let input = document.createElement("input");
+        input.type = "tel";
+        input.placeholder = `${lang} enrollment`;
+        input.inputMode = "numeric";
+        input.pattern = "[0-9]*";
+        wrapper.appendChild(input);
+    });
+
+    inputBox.appendChild(wrapper);
+}
 </script>
 
 </body>
