@@ -424,7 +424,7 @@ return {categories,total};
 
 async function submitEnrollment(){
 
-if(!localStorage.getItem("repId")){
+if(!localStorage.getItem("token")){
 showToast("Session expired");
 return;
 }
@@ -511,7 +511,7 @@ school,
 region:regionVal,
 location:locationVal,
 phone:phoneVal,
-language:languageVal,
+language:languageVal,               
 french:frenchVal,
 examType:exam,
 packageOption:packageVal,
