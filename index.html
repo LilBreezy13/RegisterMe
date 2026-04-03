@@ -354,6 +354,21 @@ flex:1;
 <ul id="historyList"></ul>
 </div>
 
+
+<div id="historyBox">
+<h3>Submitted Schools</h3>
+<ul id="historyList"></ul>
+</div>
+
+
+
+<!-- DOWNLOAD PANEL -->
+<div style="text-align:center; margin-top:15px;">
+  <a href="./download.html" style="font-size:16px; padding:8px 12px; background:#0d1b66; color:white; border-radius:8px; display:inline-block;">📄 Download Report</a>
+</div>
+
+ <!-- FOOTER FOOTER -->
+
 <div class="footer">
 Registration Portal • Designed by Nick 
 </div>
@@ -856,6 +871,55 @@ input.required = true;
     });
 
     inputBox.appendChild(wrapper);
+}
+
+
+
+
+async function downloadMyData(){
+
+let from = document.getElementById("fromDate").value;
+let to   = document.getElementById("toDate").value;
+
+if(!from || !to){
+showToast("Select date range");
+return;
+}
+
+let token = localStorage.getItem("token");
+
+showToast("Preparing file...");
+
+try{
+
+let res = await fetch(API_URL,{
+method:"POST",
+headers:{ "Content-Type":"text/plain;charset=utf-8"},
+body:JSON.stringify({
+action:"download",
+token,
+from,
+to
+})
+});
+
+let data = await res.json();
+
+if(data.status === "no_data"){
+showToast("No records for selected dates");
+return;
+}
+
+if(data.url){
+window.open(data.url);
+}else{
+showToast("Download failed");
+}
+
+}catch(e){
+showToast("Download failed");
+}
+
 }
 
 

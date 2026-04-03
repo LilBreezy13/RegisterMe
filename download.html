@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Download Reports</title>
+<style>
+*{box-sizing:border-box;}
+body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#e8edf5,#dfe6f2);margin:0;padding:15px;}
+.card{background:white;max-width:500px;margin:auto;padding:20px;border-radius:12px;box-shadow:0 8px 25px rgba(0,0,0,0.08);}
+h3{text-align:center;color:#0d1b66;}
+label{display:block;margin-top:10px;font-size:14px;color:#333;}
+input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #d7dce5;font-size:14px;}
+button{background:#0d1b66;color:white;border:none;cursor:pointer;}
+button:hover{background:#1c2e96;}
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#0d1b66;color:white;padding:12px 20px;border-radius:8px;opacity:0;transition:.3s;}
+#toast.show{opacity:1;}
+
+.All{
+    color: white;
+    background-color: #0628e7;
+}
+
+.All:hover{
+      background-color:  #0628e7;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h3>Download School Reports</h3>
+
+  <label>From Date:</label>
+  <input type="date" id="fromDate">
+
+  <label>To Date:</label>
+  <input type="date" id="toDate">
+<button onclick="downloadReport('dates')">Download Report</button>
+  <button class="All" onclick="downloadReport('all')">Download All Time</button>
+
+<button id="backBtn">Back to Registration</button>
+
+<script>
+document.getElementById("backBtn").addEventListener("click", () => {
+  // Optional: keep token in localStorage
+  window.location.href = "index.html"; // Redirect without logging out
+});
+</script>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbzIQLnIrh_4k8Yd5T1rZF-XW3sriCdGPokev-iNwDyTjpv3VAasq2WZlqTIj2jSWYUb/exec";
+
+function showToast(msg){
+  let t=document.getElementById("toast");
+  t.innerText=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2000);
+}
+async function downloadReport(type){
+  let from = null;
+  let to   = null;
+
+  if(type !== "all"){
+    from = document.getElementById("fromDate").value;
+    to   = document.getElementById("toDate").value;
+
+    if(!from || !to){
+      showToast("Select both dates");
+      return;
+    }
+  }
+
+  let token = localStorage.getItem("token");
+  if(!token){
+    showToast("Session expired");
+    return;
+  }
+
+  showToast("Preparing report...");
+
+  try{
+    let res = await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({
+        action:"download",
+        token,
+        from,
+        to
+      })
+    });
+
+    let data = await res.json();
+
+    if(data.status === "no_data"){
+      showToast("No records found");
+      return;
+    }
+
+    if(data.url){
+      window.open(data.url); // Opens generated Excel/PDF
+    } else {
+      showToast("Download failed");
+    }
+
+  } catch(e){
+    showToast("Server connection failed");
+  }
+}
+</script>
+</body>
+</html>
