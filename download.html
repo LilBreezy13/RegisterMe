@@ -141,8 +141,8 @@ function showToast(msg){
 
 
 // DOWNLOAD REPORRT SCRIPT 
-
 function downloadReport(type){
+
   let from = null;
   let to   = null;
 
@@ -162,7 +162,10 @@ function downloadReport(type){
     return;
   }
 
-  // 🔥 SHOW LOADER
+  // ✅ OPEN TAB IMMEDIATELY (Safari fix)
+  const newTab = window.open("", "_blank");
+
+  // Loader
   const loader = document.getElementById("loader");
   const text   = document.getElementById("loaderText");
   const bar    = document.getElementById("progressFill");
@@ -171,7 +174,6 @@ function downloadReport(type){
 
   let progress = 0;
 
-  // Fake progress animation (feels real to users)
   const interval = setInterval(() => {
     if(progress < 90){
       progress += Math.random() * 10;
@@ -198,24 +200,31 @@ function downloadReport(type){
 
     if(res.status === "success"){
       bar.style.width = "100%";
-      text.innerText = "Download ready 🎉";
+      text.innerText = "Opening PDF...";
 
       setTimeout(() => {
         loader.classList.remove("show");
-        window.open(res.url, "_blank");
-      }, 800);
 
-    } else if(res.status === "no_data"){
-      loader.classList.remove("show");
-      showToast("No data found");
+        // ✅ Redirect already-open tab
+        newTab.location.href = res.url;
+
+      }, 600);
+
     } else {
       loader.classList.remove("show");
-      showToast("Error generating report");
+      newTab.close(); // close blank tab if failed
+
+      if(res.status === "no_data"){
+        showToast("No data found");
+      } else {
+        showToast("Error generating report");
+      }
     }
   })
   .catch(() => {
     clearInterval(interval);
     loader.classList.remove("show");
+    newTab.close();
     showToast("Network error");
   });
 }
