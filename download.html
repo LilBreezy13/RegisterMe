@@ -1,233 +1,279 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Download Reports</title>
-<style>
-*{box-sizing:border-box;}
-body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#e8edf5,#dfe6f2);margin:0;padding:15px;}
-.card{background:white;max-width:500px;margin:auto;padding:20px;border-radius:12px;box-shadow:0 8px 25px rgba(0,0,0,0.08);}
-h3{text-align:center;color:#0d1b66;}
-label{display:block;margin-top:10px;font-size:14px;color:#333;}
-input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #d7dce5;font-size:14px;}
-button{background:#0d1b66;color:white;border:none;cursor:pointer;}
-button:hover{background:#1c2e96;}
-#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#0d1b66;color:white;padding:12px 20px;border-radius:8px;opacity:0;transition:.3s;}
-#toast.show{opacity:1;}
-
-.All{
-    color: white;
-    background-color: #0628e7;
-}
-
-.All:hover{
-      background-color:  #0628e7;
-}
-
-.loader{
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:rgba(255,255,255,0.95);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-  visibility:hidden;
-  opacity:0;
-  transition:.3s;
-}
-
-.loader.show{
-  visibility:visible;
-  opacity:1;
-}
-
-.loader-box{
-  text-align:center;
-  width:80%;
-  max-width:300px;
-}
-
-.spinner{
-  border:4px solid #eee;
-  border-top:4px solid #0d1b66;
-  border-radius:50%;
-  width:40px;height:40px;
-  margin:auto;
-  animation:spin 1s linear infinite;
-}
-
-@keyframes spin{
-  100%{transform:rotate(360deg);}
-}
-
-.progress-bar{
-  width:100%;
-  height:8px;
-  background:#eee;
-  border-radius:5px;
-  margin-top:15px;
-  overflow:hidden;
-}
-
-#progressFill{
-  width:0%;
-  height:100%;
-  background:#0d1b66;
-  transition:width .4s ease;
-}
-
-.back-res{
-    background-color: #d31005;
-    
-}
-
-.back-res:hover{
-    background-color: #d31005;
-    
-}
-
-</style>
-</head>
-<body>
-
-<div class="card">
-  <h3>Download School Reports</h3>
-
-  <label>From Date:</label>
-  <input type="date" id="fromDate">
-
-  <label>To Date:</label>
-  <input type="date" id="toDate">
-<button onclick="downloadReport('dates')">Download Report</button>
-  <button class="All" onclick="downloadReport('all')">Download All Time</button>
-
-<button class="back-res" id="backBtn">Back to Registration</button>
-
-<script>
-document.getElementById("backBtn").addEventListener("click", () => {
-  // Optional: keep token in localStorage
-  window.location.href = "index.html"; // Redirect without logging out
-});
-
-
-</script>
-</div>
-
-<div id="loader" class="loader">
-  <div class="loader-box">
-    <div class="spinner"></div>
-    <h4 id="loaderText">Preparing report...</h4>
-    <div class="progress-bar">
-      <div id="progressFill"></div>
-    </div>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<script>
-const API_URL="https://script.google.com/macros/s/AKfycbzIQLnIrh_4k8Yd5T1rZF-XW3sriCdGPokev-iNwDyTjpv3VAasq2WZlqTIj2jSWYUb/exec";
-
-function showToast(msg){
-  let t=document.getElementById("toast");
-  t.innerText=msg;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),2000);
-}
-
-
-
-
-// DOWNLOAD REPORRT SCRIPT 
-function downloadReport(type){
-
-  let from = null;
-  let to   = null;
-
-  if(type !== "all"){
-    from = document.getElementById("fromDate").value;
-    to   = document.getElementById("toDate").value;
-
-    if(!from || !to){
-      showToast("Select both dates");
-      return;
-    }
-  }
-
-  let token = localStorage.getItem("token");
-  if(!token){
-    showToast("Session expired");
-    return;
-  }
-
-  // ✅ OPEN TAB IMMEDIATELY (Safari fix)
-  const newTab = window.open("", "_blank");
-
-  // Loader
-  const loader = document.getElementById("loader");
-  const text   = document.getElementById("loaderText");
-  const bar    = document.getElementById("progressFill");
-
-  loader.classList.add("show");
-
-  let progress = 0;
-
-  const interval = setInterval(() => {
-    if(progress < 90){
-      progress += Math.random() * 10;
-      bar.style.width = progress + "%";
-
-      if(progress > 30) text.innerText = "Fetching data...";
-      if(progress > 60) text.innerText = "Generating PDF...";
-    }
-  }, 400);
-
-  fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "download",
-      token,
-      from,
-      to
-    })
-  })
-  .then(res => res.json())
-  .then(res => {
-
-    clearInterval(interval);
-
-    if(res.status === "success"){
-      bar.style.width = "100%";
-      text.innerText = "Opening PDF...";
-
-      setTimeout(() => {
-        loader.classList.remove("show");
-
-        // ✅ Redirect already-open tab
-        newTab.location.href = res.url;
-
-      }, 600);
-
-    } else {
-      loader.classList.remove("show");
-      newTab.close(); // close blank tab if failed
-
-      if(res.status === "no_data"){
-        showToast("No data found");
-      } else {
-        showToast("Error generating report");
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Download Reports</title>
+    <style>
+      * {
+        box-sizing: border-box;
       }
-    }
-  })
-  .catch(() => {
-    clearInterval(interval);
-    loader.classList.remove("show");
-    newTab.close();
-    showToast("Network error");
-  });
-}
-</script>
-</body>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #e8edf5, #dfe6f2);
+        margin: 0;
+        padding: 15px;
+      }
+      .card {
+        background: white;
+        max-width: 500px;
+        margin: auto;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      }
+      h3 {
+        text-align: center;
+        color: #0d1b66;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+        font-size: 14px;
+        color: #333;
+      }
+      input,
+      button {
+        width: 100%;
+        padding: 12px;
+        margin: 6px 0;
+        border-radius: 8px;
+        border: 1px solid #d7dce5;
+        font-size: 14px;
+      }
+      button {
+        background: #0d1b66;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1c2e96;
+      }
+      #toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #0d1b66;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        opacity: 0;
+        transition: 0.3s;
+      }
+      #toast.show {
+        opacity: 1;
+      }
+
+      .All {
+        color: white;
+        background-color: #0628e7;
+      }
+
+      .All:hover {
+        background-color: #0628e7;
+      }
+
+      .loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+        visibility: hidden;
+        opacity: 0;
+        transition: 0.3s;
+      }
+
+      .loader.show {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .loader-box {
+        text-align: center;
+        width: 80%;
+        max-width: 300px;
+      }
+
+      .spinner {
+        border: 4px solid #eee;
+        border-top: 4px solid #0d1b66;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin: auto;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #eee;
+        border-radius: 5px;
+        margin-top: 15px;
+        overflow: hidden;
+      }
+
+      #progressFill {
+        width: 0%;
+        height: 100%;
+        background: #0d1b66;
+        transition: width 0.4s ease;
+      }
+
+      .back-res {
+        background-color: #d31005;
+      }
+
+      .back-res:hover {
+        background-color: #d31005;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h3>Download School Reports</h3>
+
+      <label>From Date:</label>
+      <input type="date" id="fromDate" />
+
+      <label>To Date:</label>
+      <input type="date" id="toDate" />
+      <button onclick="downloadReport('dates')">Download Report</button>
+      <button class="All" onclick="downloadReport('all')">
+        Download All Time
+      </button>
+
+      <button class="back-res" id="backBtn">Back to Registration</button>
+
+      <script>
+        document.getElementById("backBtn").addEventListener("click", () => {
+          // Optional: keep token in localStorage
+          window.location.href = "index.html"; // Redirect without logging out
+        });
+      </script>
+    </div>
+
+    <div id="loader" class="loader">
+      <div class="loader-box">
+        <div class="spinner"></div>
+        <h4 id="loaderText">Preparing report...</h4>
+        <div class="progress-bar">
+          <div id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbzIQLnIrh_4k8Yd5T1rZF-XW3sriCdGPokev-iNwDyTjpv3VAasq2WZlqTIj2jSWYUb/exec";
+
+      function showToast(msg) {
+        let t = document.getElementById("toast");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+      }
+
+      // DOWNLOAD REPORRT SCRIPT
+
+      function downloadReport(type) {
+        let from = null;
+        let to = null;
+
+        if (type !== "all") {
+          from = document.getElementById("fromDate").value;
+          to = document.getElementById("toDate").value;
+
+          if (!from || !to) {
+            showToast("Select both dates");
+            return;
+          }
+        }
+
+        let token = localStorage.getItem("token");
+        if (!token) {
+          showToast("Session expired");
+          return;
+        }
+
+        // ✅ OPEN TAB IMMEDIATELY (Safari fix)
+        const newTab = window.open("", "_blank");
+
+        // Loader
+        const loader = document.getElementById("loader");
+        const text = document.getElementById("loaderText");
+        const bar = document.getElementById("progressFill");
+
+        loader.classList.add("show");
+
+        let progress = 0;
+
+        const interval = setInterval(() => {
+          if (progress < 90) {
+            progress += Math.random() * 10;
+            bar.style.width = progress + "%";
+
+            if (progress > 30) text.innerText = "Fetching data...";
+            if (progress > 60) text.innerText = "Generating PDF...";
+          }
+        }, 400);
+
+        fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "download",
+            token,
+            from,
+            to,
+          }),
+        })
+          .then((res) => res.json())
+          .then((res) => {
+            clearInterval(interval);
+
+            if (res.status === "success") {
+              bar.style.width = "100%";
+              text.innerText = "Opening PDF...";
+
+              setTimeout(() => {
+                loader.classList.remove("show");
+
+                // ✅ Redirect already-open tab
+                newTab.location.href = res.url;
+              }, 600);
+            } else {
+              loader.classList.remove("show");
+              newTab.close(); // close blank tab if failed
+
+              if (res.status === "no_data") {
+                showToast("No data found");
+              } else {
+                showToast("Error generating report");
+              }
+            }
+          })
+          .catch(() => {
+            clearInterval(interval);
+            loader.classList.remove("show");
+            newTab.close();
+            showToast("Network error");
+          });
+      }
+    </script>
+  </body>
 </html>
