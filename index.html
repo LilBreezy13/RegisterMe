@@ -2,7 +2,8 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Enrollment Portal</title>
+<title>Registration Portal</title>
+
 <style>
 
 *{
@@ -416,6 +417,8 @@ let data=await res.json();
 if(data.status==="ok"){
 
 localStorage.setItem("token", data.token);
+localStorage.setItem("repId", rep);
+localStorage.setItem("role", data.role); // ✅ ADD THIS
 
 /* LOAD UI IMMEDIATELY */
 loginBox.style.display="none";
@@ -520,12 +523,22 @@ async function submitEnrollment() {
     let packageVal = document.getElementById("packageOption").value;
 
     // VALIDATE REQUIRED FIELDS
-    if (!school || !regionVal || !locationVal || !phoneVal || !exam || !frenchVal) {
-        showToast("Fill all fields");
-        btn.disabled = false;
-        btn.innerText = "Submit Enrollment";
-        return;
-    }
+const role = localStorage.getItem("role");
+
+if (!school || !locationVal || !phoneVal || !exam || !frenchVal) {
+    showToast("Fill all required fields");
+    btn.disabled = false;
+    btn.innerText = "Submit Enrollment";
+    return;
+}
+
+// 🚨 Only REPs must select region
+if (role !== "SECRETARY" && !regionVal) {
+    showToast("Select region");
+    btn.disabled = false;
+    btn.innerText = "Submit Enrollment";
+    return;
+}
 
     if (selectedLangs.length === 0) {
         showToast("Select at least one language");
