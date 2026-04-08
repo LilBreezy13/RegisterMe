@@ -230,6 +230,10 @@ flex:1;
 }
 
 
+a{
+-webkit-tap-highlight-color: transparent;
+}
+
 </style>
 </head>
 
@@ -262,6 +266,7 @@ flex:1;
 
 <div id="formArea">
 
+<!-- BASIC INFO -->
 <input id="schoolName" placeholder="School Name">
 
 <select id="region">
@@ -288,6 +293,40 @@ flex:1;
 
 <input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="0509967235">
 
+
+<!-- EXAM FLOW -->
+<!-- <select id="examType" onchange="toggleClasses()">
+<option value="">Exam Type</option>
+<option value="mock">Mock</option>
+</select> -->
+
+<select id="examType" style="display:none;">
+<option value="mock" selected>Mock</option>
+</select>
+
+<select id="packageOption">
+<option value="">Select Package Option</option>
+<option value="A">Option A - Premium Pack</option>
+<option value="B">Option B - General Pack</option>
+<option value="C">Option C - Open Pack</option>
+</select>
+
+<!-- <select id="french">
+<option value="No">French: No</option>
+<option value="Yes">French: Yes</option>
+</select> -->
+
+
+<!-- CLASS INPUTS (B9 etc comes here) -->
+<div id="classArea"></div>
+
+
+<select id="french">
+<option value="No">French: No</option>
+<option value="Yes">French: Yes</option>
+</select>
+
+<!-- LANGUAGES LAST -->
 <div class="lang-row">
 <select id="language">
 <option value="">Select Ghanaian Language</option>
@@ -309,29 +348,9 @@ flex:1;
 
 <div id="selectedLanguages"></div>
 <div id="languageEnrollments"></div>
- <!-- FRENCH SELECTOR  -->
-<select id="french">
-<option value="No">French: No</option>
-<option value="Yes">French: Yes</option>
-</select>
 
 
-<!-- PACKAGE SELECTOR -->
-<select id="packageOption">
-<option value="">Select Package Option</option>
-<option value="A">Option A - Premium Pack</option>
-<option value="B">Option B - General Pack</option>
-<option value="C">Option C - Open Pack</option>
-</select>
-
-<select id="examType" onchange="toggleClasses()">
-<option value="">Exam Type</option>
-<option value="mock">Mock</option>
-<!-- <option value="terminal">Terminal</option> -->
-</select>
-
-<div id="classArea"></div>
-
+<!-- ACTION BUTTONS -->
 <button id="submitBtn" onclick="submitEnrollment()">Submit Enrollment</button>
 <button onclick="reloadForm()">Reload / New Enrollment</button>
 <button onclick="toggleHistory()">Show / Hide History</button>
@@ -365,7 +384,22 @@ flex:1;
 
 <!-- DOWNLOAD PANEL -->
 <div style="text-align:center; margin-top:15px;">
-  <a href="./download.html" style="font-size:16px; padding:8px 12px; background:#d31005; color:white; border-radius:8px; display:inline-block;">📄 Download Report</a>
+  <a href="./download.html"
+     style="
+     font-size:16px;
+     padding:8px 12px;
+     background:#d31005;
+     color:white;
+     border-radius:8px;
+     display:inline-block;
+     text-decoration:none;
+     user-select:none;
+     -webkit-user-select:none;
+     -webkit-touch-callout:none;
+     touch-action:manipulation;
+     ">
+      Download Report
+  </a>
 </div>
 
  <!-- FOOTER FOOTER -->
@@ -418,7 +452,7 @@ if(data.status==="ok"){
 
 localStorage.setItem("token", data.token);
 localStorage.setItem("repId", rep);
-localStorage.setItem("role", data.role); // ✅ ADD THIS
+localStorage.setItem("role", data.role); // 
 
 /* LOAD UI IMMEDIATELY */
 loginBox.style.display="none";
@@ -518,14 +552,16 @@ async function submitEnrollment() {
     const regionVal = document.getElementById("region").value;
     const locationVal = document.getElementById("location").value.trim();
     const phoneVal = document.getElementById("phone").value.trim();
-    const exam = document.getElementById("examType").value;
+    // const exam = document.getElementById("examType").value;
+    const exam = "mock";
     const frenchVal = document.getElementById("french").value;
     let packageVal = document.getElementById("packageOption").value;
 
     // VALIDATE REQUIRED FIELDS
 const role = localStorage.getItem("role");
 
-if (!school || !locationVal || !phoneVal || !exam || !frenchVal) {
+// if (!school || !locationVal || !phoneVal || !exam || !frenchVal) 
+if (!school || !locationVal || !phoneVal || !frenchVal){
     showToast("Fill all required fields");
     btn.disabled = false;
     btn.innerText = "Submit Enrollment";
@@ -634,11 +670,17 @@ if (totalLang < mockTotal) {
     const submissionId = window.currentSubmissionId || Date.now();
 
     // BUILD SUMMARY HTML
-    let summaryHTML = `<div><b>School:</b> ${school}</div><hr>`;
-    for (let c in bill.categories) {
-        summaryHTML += `<div>${c}: GHS ${bill.categories[c]}</div>`;
-    }
-    summaryHTML += `<hr><b>Total: GHS ${bill.total}</b>`;
+  let basic9Total = bill.categories["Basic 9"] || 0;
+let deliveryFee = 20;
+
+let summaryHTML = `
+<div><b>School:</b> ${school}</div>
+<hr>
+<div>Basic 9: GHS ${basic9Total}</div>
+<div>Delivery Fee: GHS ${deliveryFee}</div>
+<hr>
+<b>Total: GHS ${bill.total}</b>
+`;
 
     const summarySection = document.getElementById("summarySection");
     const summaryText = document.getElementById("summaryText");
@@ -648,7 +690,7 @@ if (totalLang < mockTotal) {
     summarySection.scrollIntoView({ behavior: "smooth" });
 
     // CLEAR FORM IMMEDIATELY
-    reloadForm(false);
+    // reloadForm(false);
 
     btn.disabled = false;
     btn.innerText = "Submit Enrollment";
@@ -675,33 +717,62 @@ if (totalLang < mockTotal) {
         keepalive: true
     })
     .then(res => res.json())
+
     .then(data => {
-        if (data.status === "success") showToast("Enrollment submitted");
-    })
-    .catch(() => showToast("Server connection failed"));
+
+    if (data.status === "success") {
+
+            reloadForm(false);
+        showToast("Enrollment submitted");
+
+        saveToHistory({
+            submissionId,
+            school,
+            region: regionVal,
+            location: locationVal,
+            phone: phoneVal,
+            language: languageVal,
+            french: frenchVal,
+            examType: exam,
+            packageOption: packageVal,
+            enrollments,
+            time: new Date().toLocaleString(),
+            status: window.currentSubmissionId ? "EDITED" : "NEW"
+        });
+
+        loadHistory();
+
+    } else {
+showToast("Not saved. Please try again.");
+    }
+
+})
+.catch(() => {
+    showToast("Server connection failed");
+});
 
     // SAVE HISTORY LOCALLY
-    const rep = localStorage.getItem("repId");
-    const historyKey = "history_" + rep;
-    const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+    // const rep = localStorage.getItem("repId");
+    // const historyKey = "history_" + rep;
+    // const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
 
-    history.push({
-        submissionId,
-        school,
-        region: regionVal,
-        location: locationVal,
-        phone: phoneVal,
-        language: languageVal,
-        french: frenchVal,
-        examType: exam,
-        packageOption: packageVal,
-        enrollments,
-        time: new Date().toLocaleString()
-    });
+    // history.push({
+    //     submissionId,
+    //     school,
+    //     region: regionVal,
+    //     location: locationVal,
+    //     phone: phoneVal,
+    //     language: languageVal,
+    //     french: frenchVal,
+    //     examType: exam,
+    //     packageOption: packageVal,
+    //     enrollments,
+    //     time: new Date().toLocaleString()
+    // });
 
-    if (history.length > 50) history.shift();
-    localStorage.setItem(historyKey, JSON.stringify(history));
-    loadHistory();
+    // if (history.length > 50) history.shift();
+    // localStorage.setItem(historyKey, JSON.stringify(history));
+    // loadHistory();
 }
 
 function loadHistory(){
@@ -721,10 +792,23 @@ li.className="history-item";
 
 li.onclick=function(){ editSchool(d); };
 
+// li.innerHTML=`
+// <b>${d.school}</b>
+// <span>${d.region}</span>
+// <div class="history-time">${d.time}</div>
+// `;
+
+let badge = d.status === "EDITED"
+  ? `<span style="color:#fff;background:#1c2e96;padding:2px 6px;border-radius:4px;font-size:10px;">🟢 EDITED</span>`
+  : `<span style="color:#fff;background:#0d1b66;padding:2px 6px;border-radius:4px;font-size:10px;">🟢 SAVED</span>`;
 li.innerHTML=`
 <b>${d.school}</b>
 <span>${d.region}</span>
-<div class="history-time">${d.time}</div>
+<div class="history-time">
+${badge}<br>
+Created: ${d.createdTime || d.time}
+${d.editedTime ? `<br>Edited: ${d.editedTime}` : ""}
+</div>
 `;
 
 list.appendChild(li);
@@ -734,33 +818,68 @@ list.appendChild(li);
 }
 function editSchool(data){
 
-window.currentSubmissionId = data.submissionId;
+  window.currentSubmissionId = data.submissionId;
 
-document.getElementById("historyBox").style.display="none";
+  document.getElementById("historyBox").style.display="none";
 
-document.getElementById("schoolName").value=data.school;
-document.getElementById("region").value=data.region;
-document.getElementById("location").value=data.location;
-document.getElementById("phone").value=data.phone;
-document.getElementById("language").value=data.language;
-document.getElementById("french").value=data.french;
-document.getElementById("examType").value=data.examType;
+  // BASIC FIELDS
+  document.getElementById("schoolName").value = data.school;
+  document.getElementById("region").value = data.region;
+  document.getElementById("location").value = data.location;
+  document.getElementById("phone").value = data.phone;
 
-toggleClasses();
+  document.getElementById("french").value = data.french;
+  document.getElementById("examType").value = data.examType;
+  document.getElementById("packageOption").value = data.packageOption;
 
-setTimeout(()=>{
+  // 🔥 IMPORTANT: reset classes AFTER setting exam type
+  toggleClasses();
 
-for(let k in data.enrollments){
-let el=document.getElementById(k);
-if(el) el.value=data.enrollments[k];
+  // ✅ RESTORE ENROLLMENTS
+  setTimeout(()=>{
+    for(let k in data.enrollments){
+      let el=document.getElementById(k);
+      if(el) el.value=data.enrollments[k];
+    }
+  },200);
+
+  // 🔥 FIX LANGUAGES (IMPORTANT)
+  selectedLangs = [];
+
+  if(data.language){
+    let parts = data.language.split(",");
+
+    parts.forEach(p=>{
+      let match = p.match(/^(.+?)\((\d+)\)$/);
+
+      if(match){
+        let lang = match[1].trim();
+        let count = match[2];
+
+        selectedLangs.push(lang);
+      }
+    });
+  }
+
+  renderLanguages();
+
+  // ✅ RESTORE LANGUAGE INPUT VALUES
+  setTimeout(()=>{
+    if(data.language){
+      let parts = data.language.split(",");
+      let inputs = document.querySelectorAll("#languageEnrollments input");
+
+      parts.forEach((p, i)=>{
+        let match = p.match(/\((\d+)\)/);
+        if(match && inputs[i]){
+          inputs[i].value = match[1];
+        }
+      });
+    }
+  },200);
+
+  window.scrollTo({top:0,behavior:"smooth"});
 }
-
-},200);
-
-window.scrollTo({top:0,behavior:"smooth"});
-}
-
-
 
 function toggleHistory(){
 
@@ -792,6 +911,10 @@ document.getElementById("summarySection").style.display = "none";
 selectedLangs = [];
 document.getElementById("selectedLanguages").innerHTML = "";
 document.getElementById("languageEnrollments").innerHTML = "";
+
+// 🔥 ALWAYS RESET TO MOCK MODE
+document.getElementById("examType").value = "mock";
+toggleClasses();
 }
 
 function shareWhatsApp(){
@@ -935,8 +1058,43 @@ showToast("Download failed");
 
 }
 
+window.addEventListener("load", () => {
+  document.getElementById("examType").value = "mock";
+  toggleClasses();
+});
 
 
+function saveToHistory(newData){
+
+    const rep = localStorage.getItem("repId");
+    const historyKey = "history_" + rep;
+    let history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+
+    // 🔥 CHECK IF submission already exists
+    let index = history.findIndex(h => h.submissionId === newData.submissionId);
+
+    if(index !== -1){
+        // ✅ UPDATE EXISTING (NO DUPLICATE)
+        history[index] = {
+            ...history[index],
+            ...newData,
+            editedTime: new Date().toLocaleString(),
+            status: "EDITED"
+        };
+    } else {
+        // ✅ NEW ENTRY
+        history.push({
+            ...newData,
+            createdTime: newData.time,
+            status: "NEW"
+        });
+    }
+
+    // limit size
+    if(history.length > 50) history.shift();
+
+    localStorage.setItem(historyKey, JSON.stringify(history));
+}
 </script>
 
 </body>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Submissions</title>
+
+<style>
+
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f5f7fb;
+  margin:0;
+  padding:12px;
+}
+
+.card{
+  max-width:500px;
+  margin:auto;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+h3{
+  margin:0;
+  font-size:18px;
+  color:#0d1b66;
+}
+
+.back{
+  background:#0d1b66;
+  color:white;
+  border:none;
+  padding:8px 10px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.history-item{
+  background:white;
+  padding:14px;
+  border-radius:12px;
+  margin-bottom:10px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.06);
+  cursor:pointer;
+  transition:.2s;
+}
+
+.history-item:active{
+  transform:scale(0.98);
+}
+
+.title{
+  font-weight:bold;
+  font-size:15px;
+  color:#0d1b66;
+}
+
+.region{
+  font-size:13px;
+  color:#666;
+  margin-top:2px;
+}
+
+.meta{
+  margin-top:6px;
+  font-size:11px;
+  color:#777;
+}
+
+.badge{
+  display:inline-block;
+  font-size:10px;
+  padding:3px 6px;
+  border-radius:4px;
+  color:white;
+  margin-bottom:4px;
+}
+
+.new{ background:#0d1b66; }
+.edited{ background:#1c2e96; }
+
+#loader{
+  text-align:center;
+  margin-top:30px;
+  color:#555;
+}
+
+.empty{
+  text-align:center;
+  margin-top:40px;
+  color:#777;
+  font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="header">
+  <h3>My Submissions</h3>
+  <button class="back" onclick="goBack()">⬅ Back</button>
+</div>
+
+<div id="loader">Loading...</div>
+<div id="historyList"></div>
+<div id="emptyState" class="empty" style="display:none;">
+No submissions yet
+</div>
+
+</div>
+
+<script>
+
+// ✅ AUTO LOAD (no refresh button needed)
+window.addEventListener("load", init);
+
+function init(){
+
+  // 🔒 ONLY CHECK TOKEN — not repId
+  const token = localStorage.getItem("token");
+
+  if(!token){
+    // only redirect if truly not logged in
+    window.location.href = "index.html";
+    return;
+  }
+
+  loadHistory();
+}
+
+
+// 🔹 TEMP LOCAL HISTORY (safe version)
+function loadHistory(){
+
+  const rep = localStorage.getItem("repId");
+  const historyKey = "history_" + rep;
+
+  let history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+
+  document.getElementById("loader").style.display="none";
+
+  if(!history.length){
+    document.getElementById("emptyState").style.display="block";
+    return;
+  }
+
+  // ✅ REMOVE DUPLICATES (important fix)
+  let unique = {};
+  history.forEach(item => {
+    unique[item.submissionId] = item;
+  });
+
+  let cleanHistory = Object.values(unique).reverse();
+
+  renderHistory(cleanHistory);
+}
+
+
+// 🎨 RENDER
+function renderHistory(history){
+
+  let list=document.getElementById("historyList");
+  list.innerHTML="";
+
+  history.forEach(d=>{
+
+    let div=document.createElement("div");
+    div.className="history-item";
+
+    div.onclick=function(){
+      editSubmission(d);
+    };
+
+    let badgeClass = d.status === "EDITED" ? "edited" : "new";
+    let badgeText = d.status === "EDITED" ? "EDITED" : "NEW";
+
+    div.innerHTML=`
+      <div class="title">${d.school}</div>
+      <div class="region">${d.region}</div>
+
+      <div class="meta">
+        <span class="badge ${badgeClass}">${badgeText}</span><br>
+        Created: ${d.createdTime || d.time}
+        ${d.editedTime ? `<br>Edited: ${d.editedTime}` : ""}
+      </div>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+
+// ✏️ EDIT FLOW (FIXED)
+function editSubmission(data){
+
+  localStorage.setItem("editData", JSON.stringify(data));
+
+  // 🔥 smooth transition
+  window.location.href = "index.html";
+}
+
+
+// 🔙 BACK
+function goBack(){
+  window.location.href = "index.html";
+}
+
+</script>
+
+</body>
+</html>
