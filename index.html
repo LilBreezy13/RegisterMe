@@ -375,10 +375,10 @@ a{
 </div>
 
 
-<div id="historyBox">
+<!-- <div id="historyBox">
 <h3>Submitted Schools</h3>
 <ul id="historyList"></ul>
-</div>
+</div> -->
 
 
 
@@ -538,7 +538,11 @@ total+=20;
 return {categories,total};
 }
 
+
+
+// SUBMIT FUNCTION 
 async function submitEnrollment() {
+
     if (!localStorage.getItem("token")) {
         showToast("Session expired");
         return;
@@ -552,29 +556,26 @@ async function submitEnrollment() {
     const regionVal = document.getElementById("region").value;
     const locationVal = document.getElementById("location").value.trim();
     const phoneVal = document.getElementById("phone").value.trim();
-    // const exam = document.getElementById("examType").value;
     const exam = "mock";
     const frenchVal = document.getElementById("french").value;
     let packageVal = document.getElementById("packageOption").value;
 
-    // VALIDATE REQUIRED FIELDS
-const role = localStorage.getItem("role");
+    const role = localStorage.getItem("role");
 
-// if (!school || !locationVal || !phoneVal || !exam || !frenchVal) 
-if (!school || !locationVal || !phoneVal || !frenchVal){
-    showToast("Fill all required fields");
-    btn.disabled = false;
-    btn.innerText = "Submit Enrollment";
-    return;
-}
+    // ✅ VALIDATIONS
+    if (!school || !locationVal || !phoneVal || !frenchVal){
+        showToast("Fill all required fields");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
 
-// 🚨 Only REPs must select region
-if (role !== "SECRETARY" && !regionVal) {
-    showToast("Select region");
-    btn.disabled = false;
-    btn.innerText = "Submit Enrollment";
-    return;
-}
+    if (role !== "SECRETARY" && !regionVal) {
+        showToast("Select region");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
 
     if (selectedLangs.length === 0) {
         showToast("Select at least one language");
@@ -583,58 +584,31 @@ if (role !== "SECRETARY" && !regionVal) {
         return;
     }
 
-    if (exam === "mock" && !packageVal) {
-        showToast("Select Option A, B or C for Mock");
+    if (!packageVal) {
+        showToast("Select Option A, B or C");
         btn.disabled = false;
         btn.innerText = "Submit Enrollment";
         return;
     }
 
-    if (exam === "terminal") {
-        packageVal = "B"; // Force terminal to B
-    }
-
-    // COLLECT ENROLLMENTS
+    // ✅ COLLECT ENROLLMENTS
     const enrollments = {};
     document.querySelectorAll("#classArea input").forEach(i => {
         enrollments[i.id] = Number(i.value) || 0;
     });
 
- // HANDLE LANGUAGE VALUES
-let languageVal = "";
-const languageInputs = document.querySelectorAll("#languageEnrollments input");
-
-if (exam === "mock") {
-
-    if (selectedLangs.length === 0) {
-        showToast("Select at least one language");
-        btn.disabled=false;
-        btn.innerText="Submit Enrollment";
-        return;
-    }
-
+    // ✅ LANGUAGE BUILD (same as yours, shortened)
     let totalLang = 0;
     let langParts = [];
+    const inputs = document.querySelectorAll("#languageEnrollments input");
 
     for (let i = 0; i < selectedLangs.length; i++) {
+        let val = Number(inputs[i]?.value || 0);
 
-        let raw = languageInputs[i] ? languageInputs[i].value.trim() : "";
-
-        // ❌ EMPTY FIELD CHECK (this is the important fix)
-        if (raw === "") {
-            showToast("Enter enrollment for " + selectedLangs[i]);
-            btn.disabled=false;
-            btn.innerText="Submit Enrollment";
-            return;
-        }
-
-        let val = Number(raw);
-
-        // ❌ ZERO OR NEGATIVE CHECK
         if (val <= 0) {
-            showToast("Enrollment must be greater than 0 for " + selectedLangs[i]);
-            btn.disabled=false;
-            btn.innerText="Submit Enrollment";
+            showToast("Enter valid enrollment for " + selectedLangs[i]);
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
             return;
         }
 
@@ -644,170 +618,133 @@ if (exam === "mock") {
 
     let mockTotal = (enrollments.b9 || 0);
 
-// ❌ greater than mock
-if (totalLang > mockTotal) {
-    showToast(`Languages must total ${mockTotal}`);
-    btn.disabled=false;
-    btn.innerText="Submit Enrollment";
-    return;
-}
+    if (totalLang !== mockTotal) {
+        showToast(`Languages must total ${mockTotal}`);
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
 
-// ❌ less than mock
-if (totalLang < mockTotal) {
-    showToast(`Languages must total ${mockTotal}`);
-    btn.disabled=false;
-    btn.innerText="Submit Enrollment";
-    return;
-}
-    languageVal = langParts.join(", ");
+    let languageVal = langParts.join(", ");
 
-} else {
-    languageVal = selectedLangs.join(", ");
-}
-
-    // CALCULATE BILL
+    // ✅ CALCULATE BILL
     const bill = calculateBill(enrollments);
     const submissionId = window.currentSubmissionId || Date.now();
 
-    // BUILD SUMMARY HTML
-  let basic9Total = bill.categories["Basic 9"] || 0;
-let deliveryFee = 20;
+    try {
 
-let summaryHTML = `
-<div><b>School:</b> ${school}</div>
-<hr>
-<div>Basic 9: GHS ${basic9Total}</div>
-<div>Delivery Fee: GHS ${deliveryFee}</div>
-<hr>
-<b>Total: GHS ${bill.total}</b>
-`;
+        // 🔥 SEND FIRST (IMPORTANT CHANGE)
+        let res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+                action: "submit",
+                token: localStorage.getItem("token"),
+                submissionId,
+                school,
+                region: regionVal,
+                location: locationVal,
+                phone: phoneVal,
+                language: languageVal,
+                french: frenchVal,
+                examType: exam,
+                packageOption: packageVal,
+                enrollments,
+                totalBill: bill.total
+            })
+        });
 
-    const summarySection = document.getElementById("summarySection");
-    const summaryText = document.getElementById("summaryText");
-    summaryText.innerHTML = summaryHTML;
-    summaryText.dataset.school = school;
-    summarySection.style.display = "block";
-    summarySection.scrollIntoView({ behavior: "smooth" });
+        let data = await res.json();
 
-    // CLEAR FORM IMMEDIATELY
-    // reloadForm(false);
+        // ❌ IF FAILED → DO NOT SHOW SUMMARY
+        if (data.status !== "success") {
+            showToast("Not saved. Please try again.");
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            return;
+        }
+
+        // ✅ ONLY NOW SHOW SUMMARY
+        let summaryHTML = `
+        <div><b>School:</b> ${school}</div>
+        <hr>
+        <div>Basic 9: GHS ${bill.categories["Basic 9"] || 0}</div>
+        <div>Delivery Fee: GHS 20</div>
+        <hr>
+        <b>Total: GHS ${bill.total}</b>
+        `;
+
+        const summarySection = document.getElementById("summarySection");
+        const summaryText = document.getElementById("summaryText");
+
+        summaryText.innerHTML = summaryHTML;
+        summaryText.dataset.school = school;
+
+        summarySection.style.display = "block";
+        summarySection.scrollIntoView({ behavior: "smooth" });
+
+        // ✅ RESET FORM AFTER SUCCESS
+        reloadForm(false);
+        loadHistory();
+
+        showToast("Enrollment submitted");
+
+    } catch (err) {
+        showToast("Server connection failed");
+    }
 
     btn.disabled = false;
     btn.innerText = "Submit Enrollment";
-
-    // SEND TO SERVER IN BACKGROUND
-    fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-            action: "submit",
-            token: localStorage.getItem("token"),
-            submissionId,
-            school,
-            region: regionVal,
-            location: locationVal,
-            phone: phoneVal,
-            language: languageVal,
-            french: frenchVal,
-            examType: exam,
-            packageOption: packageVal,
-            enrollments,
-            totalBill: bill.total
-        }),
-        keepalive: true
-    })
-    .then(res => res.json())
-
-    .then(data => {
-
-    if (data.status === "success") {
-
-            reloadForm(false);
-        showToast("Enrollment submitted");
-
-        saveToHistory({
-            submissionId,
-            school,
-            region: regionVal,
-            location: locationVal,
-            phone: phoneVal,
-            language: languageVal,
-            french: frenchVal,
-            examType: exam,
-            packageOption: packageVal,
-            enrollments,
-            time: new Date().toLocaleString(),
-            status: window.currentSubmissionId ? "EDITED" : "NEW"
-        });
-
-        loadHistory();
-
-    } else {
-showToast("Not saved. Please try again.");
-    }
-
-})
-.catch(() => {
-    showToast("Server connection failed");
-});
-
-    // SAVE HISTORY LOCALLY
-    // const rep = localStorage.getItem("repId");
-    // const historyKey = "history_" + rep;
-    // const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
-
-    // history.push({
-    //     submissionId,
-    //     school,
-    //     region: regionVal,
-    //     location: locationVal,
-    //     phone: phoneVal,
-    //     language: languageVal,
-    //     french: frenchVal,
-    //     examType: exam,
-    //     packageOption: packageVal,
-    //     enrollments,
-    //     time: new Date().toLocaleString()
-    // });
-
-    // if (history.length > 50) history.shift();
-    // localStorage.setItem(historyKey, JSON.stringify(history));
-    // loadHistory();
 }
 
-function loadHistory(){
+async function loadHistory(){
+
+let token = localStorage.getItem("token");
+if(!token) return;
 
 let list=document.getElementById("historyList");
+list.innerHTML="Loading...";
+
+try{
+
+let res = await fetch(API_URL,{
+method:"POST",
+headers:{ "Content-Type":"text/plain;charset=utf-8"},
+body:JSON.stringify({
+action:"getHistory",
+token: token
+})
+});
+
+let data = await res.json();
+
 list.innerHTML="";
 
-let rep = localStorage.getItem("repId");
-let historyKey = "history_"+rep;
-let history=JSON.parse(localStorage.getItem(historyKey)||"[]");
+if(!data.history || data.history.length===0){
+list.innerHTML="<li>No records yet</li>";
+return;
+}
 
-[...history].reverse().forEach(d=>{
+data.history.forEach(d=>{
 
 let li=document.createElement("li");
-
 li.className="history-item";
-
 li.onclick=function(){ editSchool(d); };
 
-// li.innerHTML=`
-// <b>${d.school}</b>
-// <span>${d.region}</span>
-// <div class="history-time">${d.time}</div>
-// `;
-
-let badge = d.status === "EDITED"
-  ? `<span style="color:#fff;background:#1c2e96;padding:2px 6px;border-radius:4px;font-size:10px;">🟢 EDITED</span>`
-  : `<span style="color:#fff;background:#0d1b66;padding:2px 6px;border-radius:4px;font-size:10px;">🟢 SAVED</span>`;
-li.innerHTML=`
+li.innerHTML = `
 <b>${d.school}</b>
-<span>${d.region}</span>
+<span>${d.location}</span>
 <div class="history-time">
-${badge}<br>
-Created: ${d.createdTime || d.time}
-${d.editedTime ? `<br>Edited: ${d.editedTime}` : ""}
+${d.editedTime ? "✅EDITED" : "🟢 NEW"}
+<br>
+
+🕒 Submitted:
+${d.createdTime ? new Date(d.createdTime).toLocaleString() : ""}
+
+${d.editedTime ? `
+<br>Edited:
+${new Date(d.editedTime).toLocaleString()}
+` : ""}
 </div>
 `;
 
@@ -815,7 +752,15 @@ list.appendChild(li);
 
 });
 
+}catch(e){
+list.innerHTML="<li>Reconnecting...</li>";
+setTimeout(loadHistory,2000);
 }
+
+}
+
+
+
 function editSchool(data){
 
   window.currentSubmissionId = data.submissionId;
@@ -833,7 +778,21 @@ function editSchool(data){
   document.getElementById("packageOption").value = data.packageOption;
 
   // 🔥 IMPORTANT: reset classes AFTER setting exam type
+//   toggleClasses();
+document.getElementById("examType").value = data.examType || "mock";
+
+// rebuild classes WITHOUT resetting everything
+setTimeout(() => {
   toggleClasses();
+
+  setTimeout(() => {
+    for (let k in data.enrollments) {
+      let el = document.getElementById(k);
+      if (el) el.value = data.enrollments[k];
+    }
+  }, 150);
+
+}, 100);
 
   // ✅ RESTORE ENROLLMENTS
   setTimeout(()=>{
@@ -1064,37 +1023,39 @@ window.addEventListener("load", () => {
 });
 
 
-function saveToHistory(newData){
+// function saveToHistory(newData){
 
-    const rep = localStorage.getItem("repId");
-    const historyKey = "history_" + rep;
-    let history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+//     const rep = localStorage.getItem("repId");
+//     const historyKey = "history_" + rep;
+//     let history = JSON.parse(localStorage.getItem(historyKey) || "[]");
 
-    // 🔥 CHECK IF submission already exists
-    let index = history.findIndex(h => h.submissionId === newData.submissionId);
+//     // 🔥 CHECK IF submission already exists
+//     let index = history.findIndex(h => h.submissionId === newData.submissionId);
 
-    if(index !== -1){
-        // ✅ UPDATE EXISTING (NO DUPLICATE)
-        history[index] = {
-            ...history[index],
-            ...newData,
-            editedTime: new Date().toLocaleString(),
-            status: "EDITED"
-        };
-    } else {
-        // ✅ NEW ENTRY
-        history.push({
-            ...newData,
-            createdTime: newData.time,
-            status: "NEW"
-        });
-    }
+//     if(index !== -1){
+//         // ✅ UPDATE EXISTING (NO DUPLICATE)
+//         history[index] = {
+//             ...history[index],
+//             ...newData,
+//             editedTime: new Date().toLocaleString(),
+//             status: "EDITED"
+//         };
+//     } else {
+//         // ✅ NEW ENTRY
+//         history.push({
+//             ...newData,
+//             createdTime: newData.time,
+//             status: "NEW"
+//         });
+//     }
 
-    // limit size
-    if(history.length > 50) history.shift();
+//     // limit size
+//     if(history.length > 50) history.shift();
 
-    localStorage.setItem(historyKey, JSON.stringify(history));
-}
+//     localStorage.setItem(historyKey, JSON.stringify(history));
+// }
+
+
 </script>
 
 </body>
