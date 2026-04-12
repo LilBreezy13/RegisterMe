@@ -629,7 +629,9 @@ async function submitEnrollment() {
 
     // ✅ CALCULATE BILL
     const bill = calculateBill(enrollments);
-    const submissionId = window.currentSubmissionId || Date.now();
+  const submissionId = window.currentSubmissionId && window.currentSubmissionId !== "undefined"
+  ? window.currentSubmissionId
+  : Date.now().toString();
 
     try {
 
@@ -763,7 +765,7 @@ setTimeout(loadHistory,2000);
 
 function editSchool(data){
 
-  window.currentSubmissionId = data.submissionId;
+window.currentSubmissionId = String(data.submissionId || "").trim();
 
   document.getElementById("historyBox").style.display="none";
 
