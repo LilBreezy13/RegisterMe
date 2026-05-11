@@ -233,7 +233,40 @@ flex:1;
 a{
 -webkit-tap-highlight-color: transparent;
 }
+.input-group{
+position:relative;
+margin:10px 0;
+}
 
+.input-group input{
+width:100%;
+padding:14px 10px;
+border:1px solid #d7dce5;
+border-radius:7px;
+font-size:16px;
+outline:none;
+background:white;
+}
+
+.input-group label{
+position:absolute;
+left:10px;
+top:12px;
+color:#777;
+font-size:14px;
+background:white;
+padding:0 4px;
+transition:0.2s;
+pointer-events:none;
+}
+
+/* FLOAT EFFECT */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label{
+top:-7px;
+font-size:11px;
+color:#0d1b66;
+}
 </style>
 </head>
 
@@ -300,16 +333,17 @@ a{
 <option value="mock">Mock</option>
 </select> -->
 
-<select id="examType" style="display:none;">
-<option value="mock" selected>Mock</option>
+<select id="examType" onchange="handleExamChange()">
+<option value="">Select Exam Type</option>
+<option value="terminal">Terminal</option>
 </select>
 
-<select id="packageOption">
+<!-- <select id="packageOption">
 <option value="">Select Package Option</option>
 <option value="A">Option A - Premium Pack</option>
 <option value="B">Option B - General Pack</option>
 <option value="C">Option C - Open Pack</option>
-</select>
+</select> -->
 
 <!-- <select id="french">
 <option value="No">French: No</option>
@@ -341,6 +375,7 @@ a{
 <option>Gonja</option>
 <option>Kasem</option>
 <option>Nzema</option>
+<option value="NO">NO Ghanaian Language</option>
 </select>
 
 <button type="button" class="lang-add" onclick="addLanguage()">+</button>
@@ -415,7 +450,7 @@ Registration Portal • Designed by Nick
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbzIQLnIrh_4k8Yd5T1rZF-XW3sriCdGPokev-iNwDyTjpv3VAasq2WZlqTIj2jSWYUb/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbyLTmD2zgW8EijzWvXwtX7lTUiC_CSSfTn57MvlTkKMqMtcyMhLVNJSSQ1uzMInNnoP/exec";
 
 function showToast(msg){
 let t=document.getElementById("toast");
@@ -475,69 +510,94 @@ btn.disabled=false;
 btn.innerText="Login";
 }
 
+// function toggleClasses(){
+
+
+//     // RESET LANGUAGES WHEN EXAM TYPE CHANGES
+// selectedLangs=[];
+// document.getElementById("selectedLanguages").innerHTML="";
+// document.getElementById("languageEnrollments").innerHTML="";
+
+// let type=document.getElementById("examType").value;
+// let area=document.getElementById("classArea");
+// area.innerHTML="";
+
+// const classes=[["nursery","Nursery"],["kg1","KG1"],["kg2","KG2"],["b1","Basic 1"],["b2","Basic 2"],["b3","Basic 3"],["b4","Basic 4"],["b5","Basic 5"],["b6","Basic 6"],["b7","Basic 7"],["b8","Basic 8"],];
+
+// if(type==="mock"){
+
+// document.getElementById("packageOption").disabled=false;
+
+// area.innerHTML=`<input type="tel" inputmode="numeric" pattern="[0-9]*" id="b9" placeholder="Basic 9 Enrollment">`;
+
+// }
+
+// if(type==="terminal"){
+
+// // document.getElementById("packageOption").value="B";
+// // document.getElementById("packageOption").disabled=true;
+
+// classes.forEach(c=>{
+// area.innerHTML+=`<input type="tel" inputmode="numeric" pattern="[0-9]*" id="${c[0]}" placeholder="${c[1]} Enrollment">`;
+// });
+
+// }
+// }
+
+
 function toggleClasses(){
 
+let area = document.getElementById("classArea");
+area.innerHTML = "";
 
-    // RESET LANGUAGES WHEN EXAM TYPE CHANGES
-selectedLangs=[];
-document.getElementById("selectedLanguages").innerHTML="";
-document.getElementById("languageEnrollments").innerHTML="";
-
-let type=document.getElementById("examType").value;
-let area=document.getElementById("classArea");
-area.innerHTML="";
-
-const classes=[["nursery","Nursery"],["kg1","KG1"],["kg2","KG2"],["b1","Basic 1"],["b2","Basic 2"],["b3","Basic 3"],["b4","Basic 4"],["b5","Basic 5"],["b6","Basic 6"],["b7","Basic 7"],["b8","Basic 8"],["b9","Basic 9"]];
-
-if(type==="mock"){
-
-document.getElementById("packageOption").disabled=false;
-
-area.innerHTML=`<input type="tel" inputmode="numeric" pattern="[0-9]*" id="b9" placeholder="Basic 9 Enrollment">`;
-
-}
-
-if(type==="terminal"){
-
-document.getElementById("packageOption").value="B";
-document.getElementById("packageOption").disabled=true;
+const classes = [
+["nursery","Nursery"],
+["kg1","KG1"],
+["kg2","KG2"],
+["b1","Basic 1"],
+["b2","Basic 2"],
+["b3","Basic 3"],
+["b4","Basic 4"],
+["b5","Basic 5"],
+["b6","Basic 6"],
+["b7","Basic 7"],
+["b8","Basic 8"]
+];
 
 classes.forEach(c=>{
-area.innerHTML+=`<input type="tel" inputmode="numeric" pattern="[0-9]*" id="${c[0]}" placeholder="${c[1]} Enrollment">`;
+area.innerHTML += `
+<div class="input-group">
+<input type="tel"
+inputmode="numeric"
+pattern="[0-9]*"
+id="${c[0]}"
+placeholder=" "
+>
+<label>${c[1]} </label>
+</div>
+`;
 });
 
 }
-}
+
 
 function calculateBill(e){
 
-let total=0;
+let total = 0;
 
-let categories={
-"Preschool":((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*8,
-"Lower Primary":((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*9,
-"Upper Primary":((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*10,
-"Basic 7 & 8":((+e.b7||0)+(+e.b8||0))*15
+let categories = {
+"Preschool":((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*9,
+"Lower Primary":((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*10,
+"Upper Primary":((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*11,
+"Basic 7 & 8":((+e.b7||0)+(+e.b8||0))*17
 };
 
-let b9=(+e.b9||0);
+for(let k in categories) total += categories[k];
 
-let option=document.getElementById("packageOption").value;
-
-let price=20;
-if(option==="A")price=60;
-if(option==="B")price=20;
-if(option==="C")price=15;
-
-categories["Basic 9"]=b9*price;
-
-for(let k in categories) total+=categories[k];
-
-total+=20;
+total += 20; // delivery
 
 return {categories,total};
 }
-
 
 
 // SUBMIT FUNCTION 
@@ -556,9 +616,9 @@ async function submitEnrollment() {
     const regionVal = document.getElementById("region").value;
     const locationVal = document.getElementById("location").value.trim();
     const phoneVal = document.getElementById("phone").value.trim();
-    const exam = "mock";
+   const exam = "terminal";
     const frenchVal = document.getElementById("french").value;
-    let packageVal = document.getElementById("packageOption").value;
+    // let packageVal = document.getElementById("packageOption").value;
 
     const role = localStorage.getItem("role");
 
@@ -577,19 +637,19 @@ async function submitEnrollment() {
         return;
     }
 
-    if (selectedLangs.length === 0) {
-        showToast("Select at least one language");
-        btn.disabled = false;
-        btn.innerText = "Submit Enrollment";
-        return;
-    }
-
-    if (!packageVal) {
-        showToast("Select Option A, B or C");
-        btn.disabled = false;
-        btn.innerText = "Submit Enrollment";
-        return;
-    }
+  // ✅ LANGUAGE VALIDATION (STRICT)
+if (!selectedLangs || selectedLangs.length === 0) {
+    showToast("Select at least one language OR choose NO");
+    btn.disabled = false;
+    btn.innerText = "Submit Enrollment";
+    return;
+}
+    // if (!packageVal) {
+    //     showToast("Select Option A, B or C");
+    //     btn.disabled = false;
+    //     btn.innerText = "Submit Enrollment";
+    //     return;
+    // }
 
     // ✅ COLLECT ENROLLMENTS
     const enrollments = {};
@@ -598,34 +658,37 @@ async function submitEnrollment() {
     });
 
     // ✅ LANGUAGE BUILD (same as yours, shortened)
-    let totalLang = 0;
-    let langParts = [];
-    const inputs = document.querySelectorAll("#languageEnrollments input");
+    // let totalLang = 0;
+    // let langParts = [];
+    // const inputs = document.querySelectorAll("#languageEnrollments input");
 
-    for (let i = 0; i < selectedLangs.length; i++) {
-        let val = Number(inputs[i]?.value || 0);
+    // for (let i = 0; i < selectedLangs.length; i++) {
+    //     let val = Number(inputs[i]?.value || 0);
 
-        if (val <= 0) {
-            showToast("Enter valid enrollment for " + selectedLangs[i]);
-            btn.disabled = false;
-            btn.innerText = "Submit Enrollment";
-            return;
-        }
+    //     if (val <= 0) {
+    //         showToast("Enter valid enrollment for " + selectedLangs[i]);
+    //         btn.disabled = false;
+    //         btn.innerText = "Submit Enrollment";
+    //         return;
+    //     }
 
-        totalLang += val;
-        langParts.push(`${selectedLangs[i]}(${val})`);
-    }
+    //     totalLang += val;
+    //     langParts.push(`${selectedLangs[i]}(${val})`);
+    // }
 
-    let mockTotal = (enrollments.b9 || 0);
+    // let mockTotal = (enrollments.b9 || 0);
 
-    if (totalLang !== mockTotal) {
-        showToast(`Languages must total ${mockTotal}`);
-        btn.disabled = false;
-        btn.innerText = "Submit Enrollment";
-        return;
-    }
+    // if (totalLang !== mockTotal) {
+    //     showToast(`Languages must total ${mockTotal}`);
+    //     btn.disabled = false;
+    //     btn.innerText = "Submit Enrollment";
+    //     return;
+    // }
 
-    let languageVal = langParts.join(", ");
+    // let languageVal = langParts.join(", ");
+  let languageVal = selectedLangs.includes("NO")
+    ? "NO"
+    : selectedLangs.join(", ");
 
     // ✅ CALCULATE BILL
     const bill = calculateBill(enrollments);
@@ -650,7 +713,7 @@ async function submitEnrollment() {
                 language: languageVal,
                 french: frenchVal,
                 examType: exam,
-                packageOption: packageVal,
+                // packageOption: packageVal,
                 enrollments,
                 totalBill: bill.total
             })
@@ -670,7 +733,10 @@ async function submitEnrollment() {
         let summaryHTML = `
         <div><b>School:</b> ${school}</div>
         <hr>
-        <div>Basic 9: GHS ${bill.categories["Basic 9"] || 0}</div>
+    <div>Preschool: GHS ${bill.categories["Preschool"] || 0}</div>
+<div>Lower Primary: GHS ${bill.categories["Lower Primary"] || 0}</div>
+<div>Upper Primary: GHS ${bill.categories["Upper Primary"] || 0}</div>
+<div>Basic 7 & 8: GHS ${bill.categories["Basic 7 & 8"] || 0}</div>
         <div>Delivery Fee: GHS 20</div>
         <hr>
         <b>Total: GHS ${bill.total}</b>
@@ -777,11 +843,11 @@ window.currentSubmissionId = String(data.submissionId || "").trim();
 
   document.getElementById("french").value = data.french;
   document.getElementById("examType").value = data.examType;
-  document.getElementById("packageOption").value = data.packageOption;
+//   document.getElementById("packageOption").value = data.packageOption;
 
   // 🔥 IMPORTANT: reset classes AFTER setting exam type
 //   toggleClasses();
-document.getElementById("examType").value = data.examType || "mock";
+document.getElementById("examType").value = data.examType || "terminal";
 
 // rebuild classes WITHOUT resetting everything
 setTimeout(() => {
@@ -861,7 +927,7 @@ document.querySelectorAll("#formArea select").forEach(s=>s.selectedIndex=0);
 document.getElementById("classArea").innerHTML="";
 
 /* RESET DISABLED STATES */
-document.getElementById("packageOption").disabled = false;
+// document.getElementById("packageOption").disabled = false;
 
 /* ✅ CONTROL SUMMARY VISIBILITY */
 if(hideSummary){
@@ -873,9 +939,12 @@ selectedLangs = [];
 document.getElementById("selectedLanguages").innerHTML = "";
 document.getElementById("languageEnrollments").innerHTML = "";
 
-// 🔥 ALWAYS RESET TO MOCK MODE
-document.getElementById("examType").value = "mock";
-toggleClasses();
+// 🔥 ALWAYS RESET TO EXAM TYPE  MODE
+let examSelect = document.getElementById("examType");
+examSelect.value = "terminal";
+
+// 🔥 trigger the same logic as user selecting it
+handleExamChange();
 }
 
 function shareWhatsApp(){
@@ -926,50 +995,69 @@ let select = document.getElementById("language");
 let val = select.value;
 
 if(!val) return;
+
+// ❌ prevent duplicates
 if(selectedLangs.includes(val)) return;
 
-selectedLangs.push(val);
-select.value="";
-
-renderLanguages();
+// ⚠️ if NO is selected, clear others and lock it
+if(val === "NO"){
+    selectedLangs = ["NO"];
+}else{
+    // if user picks real language, remove NO
+    selectedLangs = selectedLangs.filter(l => l !== "NO");
+    selectedLangs.push(val);
 }
 
+select.value="";
+renderLanguages();
+}
 function removeLanguage(lang){
 selectedLangs = selectedLangs.filter(l => l !== lang);
 renderLanguages();
 }
 
+// function renderLanguages(){
+//     let chipBox = document.getElementById("selectedLanguages");
+//     let inputBox = document.getElementById("languageEnrollments");
+
+//     chipBox.innerHTML = "";
+//     inputBox.innerHTML = "";
+
+//     let wrapper = document.createElement("div");
+//     wrapper.className = "lang-inputs";
+
+//     selectedLangs.forEach(lang => {
+//         // Show chip
+//         chipBox.innerHTML += `
+//         <div class="lang-chip">
+//             ${lang} <span onclick="removeLanguage('${lang}')">×</span>
+//         </div>`;
+
+//         // Always show an enrollment input for every selected language
+//         // let input = document.createElement("input");
+//       input.type = "number";
+// input.min = "1";
+// input.required = true;
+//         input.placeholder = `${lang} enrollment`;
+//         input.inputMode = "numeric";
+//         input.pattern = "[0-9]*";
+//         wrapper.appendChild(input);
+//     });
+
+//     inputBox.appendChild(wrapper);
+// }
+
 function renderLanguages(){
     let chipBox = document.getElementById("selectedLanguages");
-    let inputBox = document.getElementById("languageEnrollments");
-
     chipBox.innerHTML = "";
-    inputBox.innerHTML = "";
-
-    let wrapper = document.createElement("div");
-    wrapper.className = "lang-inputs";
 
     selectedLangs.forEach(lang => {
-        // Show chip
         chipBox.innerHTML += `
         <div class="lang-chip">
             ${lang} <span onclick="removeLanguage('${lang}')">×</span>
         </div>`;
-
-        // Always show an enrollment input for every selected language
-        let input = document.createElement("input");
-      input.type = "number";
-input.min = "1";
-input.required = true;
-        input.placeholder = `${lang} enrollment`;
-        input.inputMode = "numeric";
-        input.pattern = "[0-9]*";
-        wrapper.appendChild(input);
     });
-
-    inputBox.appendChild(wrapper);
 }
-
 
 
 
@@ -1019,11 +1107,10 @@ showToast("Download failed");
 
 }
 
-window.addEventListener("load", () => {
-  document.getElementById("examType").value = "mock";
-  toggleClasses();
-});
-
+// window.addEventListener("load", () => {
+//   document.getElementById("examType").value = "terminal";
+//   toggleClasses();
+// });
 
 // function saveToHistory(newData){
 
@@ -1057,6 +1144,18 @@ window.addEventListener("load", () => {
 //     localStorage.setItem(historyKey, JSON.stringify(history));
 // }
 
+function handleExamChange(){
+
+let type = document.getElementById("examType").value;
+let area = document.getElementById("classArea");
+
+if(type === "terminal"){
+    toggleClasses(); // show inputs
+}else{
+    area.innerHTML = ""; // hide inputs
+}
+
+}
 
 </script>
 
