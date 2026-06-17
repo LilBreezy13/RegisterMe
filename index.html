@@ -324,7 +324,7 @@ color:#0d1b66;
 
 <input id="location" placeholder="Location">
 
-<input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="0509967235">
+<input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="0509967235" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
 
 
 <!-- EXAM FLOW -->
@@ -622,9 +622,18 @@ async function submitEnrollment() {
 
     const role = localStorage.getItem("role");
 
-    // ✅ VALIDATIONS
+    // VALIDATIONS
     if (!school || !locationVal || !phoneVal || !frenchVal){
         showToast("Fill all required fields");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
+
+    // Ghanaian phone validation
+    const phoneRegex = /^0[0-9]{9}$/;
+    if (!phoneRegex.test(phoneVal)) {
+        showToast("Phone must be 10 digits and start with 0");
         btn.disabled = false;
         btn.innerText = "Submit Enrollment";
         return;
@@ -637,7 +646,7 @@ async function submitEnrollment() {
         return;
     }
 
-  // ✅ LANGUAGE VALIDATION (STRICT)
+  // LANGUAGE VALIDATION (STRICT)
 if (!selectedLangs || selectedLangs.length === 0) {
     showToast("Select at least one language OR choose NO");
     btn.disabled = false;
@@ -651,13 +660,13 @@ if (!selectedLangs || selectedLangs.length === 0) {
     //     return;
     // }
 
-    // ✅ COLLECT ENROLLMENTS
+    // COLLECT ENROLLMENTS
     const enrollments = {};
     document.querySelectorAll("#classArea input").forEach(i => {
         enrollments[i.id] = Number(i.value) || 0;
     });
 
-    // ✅ LANGUAGE BUILD (same as yours, shortened)
+    //  LANGUAGE BUILD (same as yours, shortened)
     // let totalLang = 0;
     // let langParts = [];
     // const inputs = document.querySelectorAll("#languageEnrollments input");
@@ -690,7 +699,7 @@ if (!selectedLangs || selectedLangs.length === 0) {
     ? "NO"
     : selectedLangs.join(", ");
 
-    // ✅ CALCULATE BILL
+    // CALCULATE BILL
     const bill = calculateBill(enrollments);
   const submissionId = window.currentSubmissionId && window.currentSubmissionId !== "undefined"
   ? window.currentSubmissionId
@@ -698,7 +707,7 @@ if (!selectedLangs || selectedLangs.length === 0) {
 
     try {
 
-        // 🔥 SEND FIRST (IMPORTANT CHANGE)
+        // SEND FIRST (IMPORTANT CHANGE)
         let res = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -721,7 +730,7 @@ if (!selectedLangs || selectedLangs.length === 0) {
 
         let data = await res.json();
 
-        // ❌ IF FAILED → DO NOT SHOW SUMMARY
+        //  IF FAILED → DO NOT SHOW SUMMARY
         if (data.status !== "success") {
             showToast("Not saved. Please try again.");
             btn.disabled = false;
@@ -729,7 +738,7 @@ if (!selectedLangs || selectedLangs.length === 0) {
             return;
         }
 
-        // ✅ ONLY NOW SHOW SUMMARY
+        // ONLY NOW SHOW SUMMARY
         let summaryHTML = `
         <div><b>School:</b> ${school}</div>
         <hr>
@@ -751,7 +760,7 @@ if (!selectedLangs || selectedLangs.length === 0) {
         summarySection.style.display = "block";
         summarySection.scrollIntoView({ behavior: "smooth" });
 
-        // ✅ RESET FORM AFTER SUCCESS
+        // RESET FORM AFTER SUCCESS
         reloadForm(false);
         loadHistory();
 
@@ -842,68 +851,41 @@ window.currentSubmissionId = String(data.submissionId || "").trim();
   document.getElementById("phone").value = data.phone;
 
   document.getElementById("french").value = data.french;
-  document.getElementById("examType").value = data.examType;
-//   document.getElementById("packageOption").value = data.packageOption;
+ document.getElementById("examType").value = data.examType || "terminal";
 
-  // 🔥 IMPORTANT: reset classes AFTER setting exam type
-//   toggleClasses();
-document.getElementById("examType").value = data.examType || "terminal";
-
-// rebuild classes WITHOUT resetting everything
-setTimeout(() => {
-  toggleClasses();
-
+  // rebuild classes first, then restore region + enrollments after DOM settles
   setTimeout(() => {
-    for (let k in data.enrollments) {
-      let el = document.getElementById(k);
-      if (el) el.value = data.enrollments[k];
-    }
-  }, 150);
+    toggleClasses();
 
-}, 100);
+    // restore region AFTER toggleClasses (which doesn't touch region, but keep order safe)
+    document.getElementById("region").value = data.region || "";
 
-  // ✅ RESTORE ENROLLMENTS
-  setTimeout(()=>{
-    for(let k in data.enrollments){
-      let el=document.getElementById(k);
-      if(el) el.value=data.enrollments[k];
-    }
-  },200);
-
-  // 🔥 FIX LANGUAGES (IMPORTANT)
-  selectedLangs = [];
-
-  if(data.language){
-    let parts = data.language.split(",");
-
-    parts.forEach(p=>{
-      let match = p.match(/^(.+?)\((\d+)\)$/);
-
-      if(match){
-        let lang = match[1].trim();
-        let count = match[2];
-
-        selectedLangs.push(lang);
+    setTimeout(() => {
+      // RESTORE ENROLLMENTS
+      for (let k in data.enrollments) {
+        let el = document.getElementById(k);
+        if (el) el.value = data.enrollments[k];
       }
-    });
-  }
 
-  renderLanguages();
+      //  RESTORE LANGUAGES — handles plain "Asante Twi, Ewe" AND "NO"
+      selectedLangs = [];
 
-  // ✅ RESTORE LANGUAGE INPUT VALUES
-  setTimeout(()=>{
-    if(data.language){
-      let parts = data.language.split(",");
-      let inputs = document.querySelectorAll("#languageEnrollments input");
-
-      parts.forEach((p, i)=>{
-        let match = p.match(/\((\d+)\)/);
-        if(match && inputs[i]){
-          inputs[i].value = match[1];
+      if (data.language) {
+        if (data.language.trim() === "NO") {
+          selectedLangs = ["NO"];
+        } else {
+          data.language.split(",").forEach(p => {
+            let lang = p.replace(/\(\d+\)/g, "").trim(); // strip counts if any
+            if (lang) selectedLangs.push(lang);
+          });
         }
-      });
-    }
-  },200);
+      }
+
+      renderLanguages();
+
+    }, 150);
+
+  }, 100);
 
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -929,7 +911,7 @@ document.getElementById("classArea").innerHTML="";
 /* RESET DISABLED STATES */
 // document.getElementById("packageOption").disabled = false;
 
-/* ✅ CONTROL SUMMARY VISIBILITY */
+/*  CONTROL SUMMARY VISIBILITY */
 if(hideSummary){
 document.getElementById("summarySection").style.display = "none";
 }
@@ -939,11 +921,11 @@ selectedLangs = [];
 document.getElementById("selectedLanguages").innerHTML = "";
 document.getElementById("languageEnrollments").innerHTML = "";
 
-// 🔥 ALWAYS RESET TO EXAM TYPE  MODE
+//  ALWAYS RESET TO EXAM TYPE  MODE
 let examSelect = document.getElementById("examType");
 examSelect.value = "terminal";
 
-// 🔥 trigger the same logic as user selecting it
+// trigger the same logic as user selecting it
 handleExamChange();
 }
 
@@ -972,7 +954,7 @@ return `School Name: ${school}
 ${text}
 
 Kindly pay through this momo line 
-0247448883(Bacon Atsu Amengor / Best Brain Examinations Konsortium) 
+0247448883 | 0248726958 | 0207732900 (Bacon Atsu Amengor / Best Brain Examinations Konsortium) 
 
 NB: Please use the name of your school as reference when making payments and send us a screenshot for confirmation.`;
 }
@@ -996,10 +978,10 @@ let val = select.value;
 
 if(!val) return;
 
-// ❌ prevent duplicates
+//  prevent duplicates
 if(selectedLangs.includes(val)) return;
 
-// ⚠️ if NO is selected, clear others and lock it
+// if NO is selected, clear others and lock it
 if(val === "NO"){
     selectedLangs = ["NO"];
 }else{
@@ -1118,11 +1100,11 @@ showToast("Download failed");
 //     const historyKey = "history_" + rep;
 //     let history = JSON.parse(localStorage.getItem(historyKey) || "[]");
 
-//     // 🔥 CHECK IF submission already exists
+//     //  CHECK IF submission already exists
 //     let index = history.findIndex(h => h.submissionId === newData.submissionId);
 
 //     if(index !== -1){
-//         // ✅ UPDATE EXISTING (NO DUPLICATE)
+//         // UPDATE EXISTING (NO DUPLICATE)
 //         history[index] = {
 //             ...history[index],
 //             ...newData,
@@ -1130,7 +1112,7 @@ showToast("Download failed");
 //             status: "EDITED"
 //         };
 //     } else {
-//         // ✅ NEW ENTRY
+//         //  NEW ENTRY
 //         history.push({
 //             ...newData,
 //             createdTime: newData.time,
