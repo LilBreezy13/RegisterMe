@@ -180,7 +180,7 @@
 
     <script>
       const API_URL =
-        "https://script.google.com/macros/s/AKfycbyLTmD2zgW8EijzWvXwtX7lTUiC_CSSfTn57MvlTkKMqMtcyMhLVNJSSQ1uzMInNnoP/exec";
+        "https://script.google.com/macros/s/AKfycbyIqnKibz9sSAk0CCRf25qxHouLR5hzlz32b9nxdsQHP-YUGlIycpR691m9cF4DPvQl/exec";
 
       function showToast(msg) {
         let t = document.getElementById("toast");
@@ -211,7 +211,7 @@
           return;
         }
 
-        // ✅ OPEN TAB IMMEDIATELY (Safari fix)
+        // OPEN TAB IMMEDIATELY (Safari fix)
         const newTab = window.open("", "_blank");
 
         // Loader
@@ -233,7 +233,7 @@
           }
         }, 400);
 
-        fetch(API_URL, {
+      fetch(API_URL, {
           method: "POST",
           body: JSON.stringify({
             action: "download",
@@ -253,8 +253,21 @@
               setTimeout(() => {
                 loader.classList.remove("show");
 
-                // ✅ Redirect already-open tab
-                newTab.location.href = res.url;
+                // The backend sends the actual PDF as base64 (pdfBase64),
+                // not a URL — build a real Blob from it and open THAT in
+                // the already-open tab, instead of redirecting to a
+                // "res.url" that was never returned (this was causing the
+                // 404: NOT_FOUND on /undefined).
+                const byteCharacters = atob(res.pdfBase64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                  byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: "application/pdf" });
+                const blobUrl = URL.createObjectURL(blob);
+
+                newTab.location.href = blobUrl;
               }, 600);
             } else {
               loader.classList.remove("show");

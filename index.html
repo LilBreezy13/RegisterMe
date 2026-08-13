@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Registration Portal</title>
 
 <style>
@@ -79,6 +79,76 @@ background:gray;
 cursor:not-allowed;
 }
 
+.school-autofill-wrap{
+position:relative;
+}
+
+.school-suggest-box{
+position:absolute;
+left:0;
+right:0;
+top:100%;
+margin-top:-4px;
+background:white;
+border:1px solid #d7dce5;
+border-radius:0 0 7px 7px;
+box-shadow:0 8px 20px rgba(0,0,0,0.1);
+z-index:20;
+max-height:220px;
+overflow-y:auto;
+}
+
+.school-suggest-item{
+padding:10px 11px;
+cursor:pointer;
+border-top:1px solid #eef0f5;
+font-size:14px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:8px;
+}
+
+.school-suggest-item:first-child{
+border-top:none;
+}
+
+.school-suggest-item:hover,
+.school-suggest-item:active{
+background:#f0f3fb;
+}
+
+.school-suggest-item .ss-name{
+flex:1;
+min-width:0;
+}
+
+.school-suggest-item .ss-name b{
+display:block;
+color:#0d1b66;
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
+}
+
+.school-suggest-item small{
+display:block;
+color:#6b7280;
+margin-top:2px;
+}
+
+.school-suggest-item .ss-id{
+flex-shrink:0;
+font-size:11px;
+line-height:1;
+color:#4b5568;
+background:#eef1f8;
+border:1px solid #d7dce5;
+padding:3px 6px;
+border-radius:4px;
+white-space:nowrap;
+font-weight:600;
+}
 .summary{
 background:#f5f7fb;
 padding:15px;
@@ -139,6 +209,54 @@ font-size:13px;
 color:#555;
 }
 
+.history-controls{
+display:flex;
+flex-direction:column;
+gap:8px;
+margin-bottom:12px;
+}
+
+.history-search{
+width:100%;
+padding:10px 12px;
+border-radius:8px;
+border:1px solid #d7dce5;
+font-size:16px;
+background:white;
+}
+
+.history-filters{
+display:flex;
+gap:8px;
+}
+
+.filter-chip{
+flex:1;
+padding:8px;
+border-radius:8px;
+border:1px solid #d7dce5;
+background:#f5f7fb;
+color:#555;
+font-size:12px;
+font-weight:bold;
+cursor:pointer;
+text-align:center;
+transition:.2s;
+}
+
+.filter-chip.active{
+background:#0d1b66;
+color:white;
+border-color:#0d1b66;
+}
+
+.history-empty{
+text-align:center;
+color:#777;
+padding:20px;
+font-size:13px;
+list-style:none;
+}
 .history-time{
 font-size:11px;
 color:#777;
@@ -300,7 +418,10 @@ color:#0d1b66;
 <div id="formArea">
 
 <!-- BASIC INFO -->
-<input id="schoolName" placeholder="School Name">
+<div class="school-autofill-wrap">
+<input id="schoolName" placeholder="School Name" autocomplete="off" oninput="onSchoolNameInput()" onfocus="onSchoolNameInput()">
+<div id="schoolSuggestBox" class="school-suggest-box" style="display:none"></div>
+</div>
 
 <select id="region">
 <option value="">Select Region</option>
@@ -327,37 +448,21 @@ color:#0d1b66;
 <input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="0509967235" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
 
 
-<!-- EXAM FLOW -->
-<!-- <select id="examType" onchange="toggleClasses()">
-<option value="">Exam Type</option>
-<option value="mock">Mock</option>
-</select> -->
+<!-- EXAM FLOW — Mock only, no exam-type picker needed anymore -->
 
-<select id="examType" onchange="handleExamChange()">
-<option value="">Select Exam Type</option>
-<option value="terminal">Terminal</option>
-</select>
-
-<!-- <select id="packageOption">
+<select id="packageOption">
 <option value="">Select Package Option</option>
 <option value="A">Option A - Premium Pack</option>
-<option value="B">Option B - General Pack</option>
+<option value="B">Option B - General Pack </option>
 <option value="C">Option C - Open Pack</option>
-</select> -->
+</select>
 
-<!-- <select id="french">
-<option value="No">French: No</option>
-<option value="Yes">French: Yes</option>
-</select> -->
-
-
-<!-- CLASS INPUTS (B9 etc comes here) -->
+<!-- CLASS INPUT — Mock only has Basic 9 -->
 <div id="classArea"></div>
 
-
-<select id="french">
-<option value="No">French: No</option>
-<option value="Yes">French: Yes</option>
+<!-- French is forced to "Yes" for Mock and not user-editable -->
+<select id="french" disabled>
+<option value="Yes" selected>French: Yes</option>
 </select>
 
 <!-- LANGUAGES LAST -->
@@ -406,16 +511,18 @@ color:#0d1b66;
 
 <div id="historyBox">
 <h3>Submitted Schools</h3>
-<ul id="historyList"></ul>
+
+<div class="history-controls">
+<input type="text" id="historySearch" class="history-search" placeholder="Search by school or location..." oninput="filterHistory()">
+
+<div class="history-filters">
+<button type="button" class="filter-chip active" id="filterAllBtn" onclick="setHistoryFilter('all')">All</button>
+<button type="button" class="filter-chip" id="filterEditedBtn" onclick="setHistoryFilter('edited')">Edited Only</button>
+</div>
 </div>
 
-
-<!-- <div id="historyBox">
-<h3>Submitted Schools</h3>
 <ul id="historyList"></ul>
-</div> -->
-
-
+</div>
 
 <!-- DOWNLOAD PANEL -->
 <div style="text-align:center; margin-top:15px;">
@@ -450,7 +557,22 @@ Registration Portal • Designed by Nick
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbyLTmD2zgW8EijzWvXwtX7lTUiC_CSSfTn57MvlTkKMqMtcyMhLVNJSSQ1uzMInNnoP/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbyPRyb0tKH18K5CsPDlpYl1reuEGsEYTHcyeAebugtjTquvCDuKMAjbdRFkBxKtut5Y1g/exec";
+
+// The only language values the form is allowed to submit — must match
+// the <option> list in the #language <select> exactly, plus "NO".
+const VALID_LANGUAGES = ["Asante Twi","Akuapem Twi","Ga","Ewe","Fante","Dagbani","Dagaare","Dangme","Gonja","Kasem","Nzema","NO"];
+
+// The backend shortens these two to codes when saving to the sheet
+// (see mapLanguage() in Code.gs) — reverse that when reading history back.
+const LANGUAGE_ABBREVIATION_MAP = { "AST":"Asante Twi", "AKT":"Akuapem Twi" };
+
+function isKnownLanguage(lang){
+  if(lang === null || lang === undefined) return false;
+  const l = String(lang).trim();
+  if(!l) return false;
+  return VALID_LANGUAGES.some(v => v.toLowerCase() === l.toLowerCase());
+}
 
 function showToast(msg){
 let t=document.getElementById("toast");
@@ -458,6 +580,249 @@ t.innerText=msg;
 t.classList.add("show");
 setTimeout(()=>t.classList.remove("show"),2000);
 }
+
+// Called whenever the backend tells us the token is no longer valid
+// (6hr cache expiry, or the rep logged in elsewhere). Wipes local
+// session state and drops back to the login screen with a clear
+// explanation, instead of leaving the rep stuck retrying forever.
+function forceRelogin(message){
+  localStorage.removeItem("token");
+  localStorage.removeItem("repId");
+  localStorage.removeItem("role");
+  document.getElementById("appBox").style.display = "none";
+  document.getElementById("loginBox").style.display = "block";
+  showToast(message || "Session expired — please log in again");
+}
+
+// Escapes user-supplied text (school/location/phone come straight from the
+// sheet, which anyone with a rep login can write to) before it's inserted
+// via innerHTML. Without this a school name like <img src=x onerror=...>
+// would execute as stored XSS the next time any rep's history list renders it.
+function escapeHtml(str){
+  return String(str == null ? "" : str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// One unique ID per NEW enrollment attempt, generated once and reused
+// across retries so a dropped connection can never create a duplicate
+// row — the backend will treat a repeated ID as an edit of the same
+// row (a no-op if nothing changed) rather than a fresh submission.
+function generateSubmissionId(){
+  return Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 10);
+}
+
+
+window.repSchoolHistory = null;      // cached list, once loaded
+window.repSchoolHistoryLoading = false;
+
+async function loadRepSchoolHistory(){
+
+  const token = localStorage.getItem("token");
+  if(!token) return;
+
+  window.repSchoolHistoryLoading = true;
+
+  try{
+    let res = await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({
+        action:"schoolHistory",
+        token: token
+      })
+    });
+
+    let data = await res.json();
+    window.repSchoolHistory = data.suggestions || [];
+
+  }catch(err){
+    window.repSchoolHistory = null; // will fall back to live query
+  }finally{
+    window.repSchoolHistoryLoading = false;
+  }
+}
+
+let schoolSuggestTimer = null;
+let schoolSuggestAbortToken = 0;
+
+window.schoolAutofillApplied = false;
+
+function clearSchoolAutofill(){
+
+  if(!window.schoolAutofillApplied) return; // nothing was autofilled — don't touch manual entries
+
+  document.getElementById("location").value = "";
+  document.getElementById("phone").value = "";
+
+  const regionEl = document.getElementById("region");
+  if(regionEl) regionEl.selectedIndex = 0;
+
+  selectedLangs = [];
+  langValues = {};
+  renderLanguages();
+
+  window.schoolAutofillApplied = false;
+}
+
+function onSchoolNameInput(){
+
+  const box = document.getElementById("schoolSuggestBox");
+  const query = document.getElementById("schoolName").value.trim();
+
+  clearTimeout(schoolSuggestTimer);
+
+  // school name fully cleared — wipe whatever was autofilled alongside it
+  if(query.length === 0){
+    box.style.display = "none";
+    box.innerHTML = "";
+    clearSchoolAutofill();
+    return;
+  }
+
+  // start showing matches from 2 letters onward
+  if(query.length < 2){
+    box.style.display = "none";
+    box.innerHTML = "";
+    return;
+  }
+
+// Typing manually invalidates whatever school was previously picked
+  // from a suggestion — submitEnrollment() will re-resolve the ID
+  // server-side, but this keeps the client-side state honest too.
+  window.currentSchoolId = "";
+
+  // FAST PATH: cache already loaded — filter locally, instantly
+  if(Array.isArray(window.repSchoolHistory)){
+    const q = query.toUpperCase();
+    const filtered = window.repSchoolHistory
+      .filter(s =>
+        String(s.school || "").toUpperCase().includes(q) ||
+        String(s.schoolId || "").toUpperCase().includes(q)
+      )
+      .slice(0, 8);
+    renderSchoolSuggestions(filtered);
+    return;
+  }
+
+  // SLOW PATH FALLBACK: cache not ready — ask backend directly (debounced)
+  if(!window.repSchoolHistoryLoading){
+    schoolSuggestTimer = setTimeout(() => fetchSchoolSuggestions(query), 200);
+  } else {
+    // cache is on its way — try again shortly rather than hitting the backend
+    schoolSuggestTimer = setTimeout(() => onSchoolNameInput(), 150);
+  }
+}
+
+async function fetchSchoolSuggestions(query){
+
+  const token = localStorage.getItem("token");
+  if(!token) return;
+
+  const myToken = ++schoolSuggestAbortToken;
+
+  try{
+    let res = await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({
+        action:"schoolSuggest",
+        token: token,
+        query: query
+      })
+    });
+
+    let data = await res.json();
+
+    // if the rep kept typing, ignore this stale response
+    if(myToken !== schoolSuggestAbortToken) return;
+
+    renderSchoolSuggestions(data.suggestions || []);
+
+  }catch(err){
+    // silent fail — autofill is a convenience, never blocks manual entry
+  }
+}
+function renderSchoolSuggestions(suggestions){
+
+  const box = document.getElementById("schoolSuggestBox");
+
+  if(!suggestions.length){
+    box.style.display = "none";
+    box.innerHTML = "";
+    return;
+  }
+
+  box.innerHTML = suggestions.map((s, i) => `
+    <div class="school-suggest-item" onclick="applySchoolSuggestion(${i})">
+      <span class="ss-name">
+        <b title="${escapeHtml(s.school)}">${escapeHtml(s.school)}</b>
+        <small>${escapeHtml(s.location || "")}${s.phone ? " · " + escapeHtml(s.phone) : ""}</small>
+      </span>
+      ${s.schoolId ? `<span class="ss-id">${escapeHtml(s.schoolId)}</span>` : ""}
+    </div>
+  `).join("");
+
+  window.currentSchoolSuggestions = suggestions;
+  box.style.display = "block";
+}
+
+function applySchoolSuggestion(i){
+
+  const s = (window.currentSchoolSuggestions || [])[i];
+  if(!s) return;
+
+  document.getElementById("schoolName").value = s.school || "";
+  document.getElementById("location").value = s.location || "";
+  document.getElementById("phone").value = s.phone || "";
+  window.currentSchoolId = s.schoolId || "";
+
+  if(s.region){
+    setSelectValueCI(document.getElementById("region"), s.region);
+  }
+
+  
+  selectedLangs = [];
+  langValues = {};
+
+  if(s.language){
+    if(String(s.language).trim().toUpperCase() === "NO"){
+      selectedLangs = ["NO"];
+    } else {
+      String(s.language).split(",").forEach(p => {
+        let part = p.trim();
+        let match = part.match(/^(.+?)\((\d+)\)$/);
+        let rawLang = match ? match[1].trim() : part;
+
+        // reverse the backend's abbreviation (AST -> Asante Twi, etc.)
+        let lang = LANGUAGE_ABBREVIATION_MAP[rawLang.toUpperCase()] || rawLang;
+
+        // only keep it if it's a real language option — drop anything else
+        if(isKnownLanguage(lang) && lang.toUpperCase() !== "NO"){
+          selectedLangs.push(lang);
+        }
+      });
+    }
+  }
+
+  renderLanguages();
+
+  window.schoolAutofillApplied = true;
+
+  document.getElementById("schoolSuggestBox").style.display = "none";
+  document.getElementById("schoolSuggestBox").innerHTML = "";
+}
+
+// hide the suggestion dropdown when clicking anywhere else
+document.addEventListener("click", function(e){
+  const wrap = document.querySelector(".school-autofill-wrap");
+  if(wrap && !wrap.contains(e.target)){
+    document.getElementById("schoolSuggestBox").style.display = "none";
+  }
+});
 
 
 
@@ -482,7 +847,6 @@ pin:document.getElementById("repPin").value
 });
 
 let data=await res.json();
-
 if(data.status==="ok"){
 
 localStorage.setItem("token", data.token);
@@ -493,11 +857,19 @@ localStorage.setItem("role", data.role); //
 loginBox.style.display="none";
 appBox.style.display="block";
 
+/* SET UP MOCK FORM DEFAULTS — Basic 9 field + French forced to Yes */
+reloadForm(true);
+
 /* LOAD HISTORY PER REP */
 loadHistory();
 
+/* PRELOAD SCHOOL AUTOFILL CACHE (instant suggestions, no per-keystroke lag) */
+loadRepSchoolHistory();
+
 showToast("Login successful");
 
+}else if(data.status === "locked"){
+showToast("Too many failed attempts. Try again in 15 minutes.");
 }else{
 showToast("Invalid login");
 }
@@ -513,94 +885,38 @@ btn.innerText="Login";
 // function toggleClasses(){
 
 
-//     // RESET LANGUAGES WHEN EXAM TYPE CHANGES
-// selectedLangs=[];
-// document.getElementById("selectedLanguages").innerHTML="";
-// document.getElementById("languageEnrollments").innerHTML="";
-
-// let type=document.getElementById("examType").value;
-// let area=document.getElementById("classArea");
-// area.innerHTML="";
-
-// const classes=[["nursery","Nursery"],["kg1","KG1"],["kg2","KG2"],["b1","Basic 1"],["b2","Basic 2"],["b3","Basic 3"],["b4","Basic 4"],["b5","Basic 5"],["b6","Basic 6"],["b7","Basic 7"],["b8","Basic 8"],];
-
-// if(type==="mock"){
-
-// document.getElementById("packageOption").disabled=false;
-
-// area.innerHTML=`<input type="tel" inputmode="numeric" pattern="[0-9]*" id="b9" placeholder="Basic 9 Enrollment">`;
-
-// }
-
-// if(type==="terminal"){
-
-// // document.getElementById("packageOption").value="B";
-// // document.getElementById("packageOption").disabled=true;
-
-// classes.forEach(c=>{
-// area.innerHTML+=`<input type="tel" inputmode="numeric" pattern="[0-9]*" id="${c[0]}" placeholder="${c[1]} Enrollment">`;
-// });
-
-// }
-// }
 
 
 function toggleClasses(){
 
 let area = document.getElementById("classArea");
-area.innerHTML = "";
 
-const classes = [
-["nursery","Nursery"],
-["kg1","KG1"],
-["kg2","KG2"],
-["b1","Basic 1"],
-["b2","Basic 2"],
-["b3","Basic 3"],
-["b4","Basic 4"],
-["b5","Basic 5"],
-["b6","Basic 6"],
-["b7","Basic 7"],
-["b8","Basic 8"]
-];
-
-classes.forEach(c=>{
-area.innerHTML += `
+area.innerHTML = `
 <div class="input-group">
 <input type="tel"
 inputmode="numeric"
 pattern="[0-9]*"
-id="${c[0]}"
+id="b9"
 placeholder=" "
 >
-<label>${c[1]} </label>
+<label>Basic 9 Enrollment</label>
 </div>
 `;
-});
 
 }
-
 
 function calculateBill(e){
 
-let total = 0;
+const PACKAGE_PRICES = { A: 100, B: 25, C: 15 }; // GHS per student
+const option   = document.getElementById("packageOption").value;
+const price    = PACKAGE_PRICES[option] || 0;
+const b9       = Number(e.b9) || 0;
+const subtotal = b9 * price;
+const delivery = 20;
+const total    = subtotal + delivery;
 
-let categories = {
-"Preschool":((+e.nursery||0)+(+e.kg1||0)+(+e.kg2||0))*9,
-"Lower Primary":((+e.b1||0)+(+e.b2||0)+(+e.b3||0))*10,
-"Upper Primary":((+e.b4||0)+(+e.b5||0)+(+e.b6||0))*11,
-"Basic 7 & 8":((+e.b7||0)+(+e.b8||0))*17
-};
-
-for(let k in categories) total += categories[k];
-
-total += 20; // delivery
-
-return {categories,total};
+return { option, price, b9, subtotal, delivery, total };
 }
-
-
-// SUBMIT FUNCTION 
 async function submitEnrollment() {
 
     if (!localStorage.getItem("token")) {
@@ -616,14 +932,14 @@ async function submitEnrollment() {
     const regionVal = document.getElementById("region").value;
     const locationVal = document.getElementById("location").value.trim();
     const phoneVal = document.getElementById("phone").value.trim();
-   const exam = "terminal";
-    const frenchVal = document.getElementById("french").value;
-    // let packageVal = document.getElementById("packageOption").value;
+    const exam = "mock";
+    const frenchVal = document.getElementById("french").value; // always "Yes" for Mock
+    const packageVal = document.getElementById("packageOption").value;
 
     const role = localStorage.getItem("role");
 
     // VALIDATIONS
-    if (!school || !locationVal || !phoneVal || !frenchVal){
+    if (!school || !locationVal || !phoneVal){
         showToast("Fill all required fields");
         btn.disabled = false;
         btn.innerText = "Submit Enrollment";
@@ -646,83 +962,117 @@ async function submitEnrollment() {
         return;
     }
 
-  // LANGUAGE VALIDATION (STRICT)
-if (!selectedLangs || selectedLangs.length === 0) {
-    showToast("Select at least one language OR choose NO");
-    btn.disabled = false;
-    btn.innerText = "Submit Enrollment";
-    return;
-}
-    // if (!packageVal) {
-    //     showToast("Select Option A, B or C");
-    //     btn.disabled = false;
-    //     btn.innerText = "Submit Enrollment";
-    //     return;
-    // }
+    if (!packageVal) {
+        showToast("Select Option A, B or C");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
 
-    // COLLECT ENROLLMENTS
+    // COLLECT ENROLLMENT (Mock only has Basic 9)
     const enrollments = {};
     document.querySelectorAll("#classArea input").forEach(i => {
         enrollments[i.id] = Number(i.value) || 0;
     });
 
-    //  LANGUAGE BUILD (same as yours, shortened)
-    // let totalLang = 0;
-    // let langParts = [];
-    // const inputs = document.querySelectorAll("#languageEnrollments input");
+    // NO ENROLLMENT ENTERED → BLOCK SUBMISSION
+    if (!enrollments.b9 || enrollments.b9 <= 0) {
+        showToast("Enter Basic 9 enrollment");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
 
-    // for (let i = 0; i < selectedLangs.length; i++) {
-    //     let val = Number(inputs[i]?.value || 0);
+    // LANGUAGE VALIDATION
+    if (!selectedLangs || selectedLangs.length === 0) {
+        showToast("Select at least one language OR choose NO");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
 
-    //     if (val <= 0) {
-    //         showToast("Enter valid enrollment for " + selectedLangs[i]);
-    //         btn.disabled = false;
-    //         btn.innerText = "Submit Enrollment";
-    //         return;
-    //     }
+    
+    const invalidLang = selectedLangs.find(l => !isKnownLanguage(l));
+    if (invalidLang) {
+        showToast(`"${invalidLang}" is not a valid language — remove it and reselect from the list`);
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
 
-    //     totalLang += val;
-    //     langParts.push(`${selectedLangs[i]}(${val})`);
-    // }
+    let languageVal = "";
 
-    // let mockTotal = (enrollments.b9 || 0);
+    if (selectedLangs.includes("NO")) {
+        languageVal = "NO";
 
-    // if (totalLang !== mockTotal) {
-    //     showToast(`Languages must total ${mockTotal}`);
-    //     btn.disabled = false;
-    //     btn.innerText = "Submit Enrollment";
-    //     return;
-    // }
+    } else if (selectedLangs.length === 1) {
+        // Only one language — the whole Basic 9 enrollment goes to it,
+        // no per-language split required
+        languageVal = selectedLangs[0];
 
-    // let languageVal = langParts.join(", ");
-  let languageVal = selectedLangs.includes("NO")
-    ? "NO"
-    : selectedLangs.join(", ");
+    } else {
+        // MORE THAN ONE LANGUAGE — each needs its own enrollment value,
+        // and they must add up to the total Basic 9 enrollment
+        captureLangValues();
+
+        let totalLang = 0;
+        let langParts = [];
+
+        for (let lang of selectedLangs) {
+            let val = Number(langValues[lang] || 0);
+
+            if (val <= 0) {
+                showToast("Enter valid enrollment for " + lang);
+                btn.disabled = false;
+                btn.innerText = "Submit Enrollment";
+                return;
+            }
+
+            totalLang += val;
+            langParts.push(`${lang}(${val})`);
+        }
+
+        if (totalLang !== enrollments.b9) {
+            showToast(`Language enrollments must total ${enrollments.b9} (Basic 9 enrollment)`);
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            return;
+        }
+
+        languageVal = langParts.join(", ");
+    }
 
     // CALCULATE BILL
     const bill = calculateBill(enrollments);
-  const submissionId = window.currentSubmissionId && window.currentSubmissionId !== "undefined"
-  ? window.currentSubmissionId
-  : Date.now().toString();
+
+    // Reuse the ID assigned when this form session started (see reloadForm /
+    // editSchool). Only fall back to generating one here if something odd
+    // left it unset — this should not normally happen.
+    if(!window.currentSubmissionId || window.currentSubmissionId === "undefined"){
+        window.currentSubmissionId = generateSubmissionId();
+    }
+    const submissionId = window.currentSubmissionId;
 
     try {
 
-        // SEND FIRST (IMPORTANT CHANGE)
+        // SEND FIRST
         let res = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
+           body: JSON.stringify({
                 action: "submit",
                 token: localStorage.getItem("token"),
                 submissionId,
+                expectedVersion: window.currentSubmissionVersion || null,
                 school,
+                schoolId: window.currentSchoolId || "",
                 region: regionVal,
                 location: locationVal,
                 phone: phoneVal,
                 language: languageVal,
                 french: frenchVal,
                 examType: exam,
-                // packageOption: packageVal,
+                packageOption: packageVal,
                 enrollments,
                 totalBill: bill.total
             })
@@ -730,7 +1080,58 @@ if (!selectedLangs || selectedLangs.length === 0) {
 
         let data = await res.json();
 
-        //  IF FAILED → DO NOT SHOW SUMMARY
+        // SESSION EXPIRED — bounce to login instead of a confusing retry loop
+        if (data.status === "unauthorized") {
+            forceRelogin("Session expired — please log in again to continue");
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            return;
+        }
+
+        // ACCOUNT DEACTIVATED — distinct from a plain expiry, so the rep
+        // (or whoever's with them) understands why they were logged out.
+        if (data.status === "deactivated") {
+            forceRelogin("This account has been deactivated. Contact your administrator.");
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            return;
+        }
+
+        // EDITING AN EXISTING RECORD BUT NOTHING ACTUALLY CHANGED — this is
+        // not a failure, so don't tell the rep it wasn't saved.
+        if (data.status === "no_change") {
+            showToast("No changes to save");
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            return;
+        }
+
+        // SOMEONE ELSE EDITED THIS RECORD SINCE WE LOADED IT — refuse to
+        // silently overwrite their change. Send the rep back to history
+        // to pull the latest version before retrying.
+        if (data.status === "conflict") {
+            showToast("This record was updated by someone else — reload history and try again");
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            loadHistory();
+            return;
+        }
+
+        if (data.status === "busy") {
+            showToast("Server is busy — please try again in a few seconds");
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            return;
+        }
+
+        if (data.status === "validation_error") {
+            showToast(data.message || "Please check the form and try again");
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            return;
+        }
+
+        // IF FAILED → DO NOT SHOW SUMMARY
         if (data.status !== "success") {
             showToast("Not saved. Please try again.");
             btn.disabled = false;
@@ -742,11 +1143,10 @@ if (!selectedLangs || selectedLangs.length === 0) {
         let summaryHTML = `
         <div><b>School:</b> ${school}</div>
         <hr>
-    <div>Preschool: GHS ${bill.categories["Preschool"] || 0}</div>
-<div>Lower Primary: GHS ${bill.categories["Lower Primary"] || 0}</div>
-<div>Upper Primary: GHS ${bill.categories["Upper Primary"] || 0}</div>
-<div>Basic 7 & 8: GHS ${bill.categories["Basic 7 & 8"] || 0}</div>
-        <div>Delivery Fee: GHS 20</div>
+        <div>Basic 9 Enrollment: ${bill.b9}</div>
+        <div>Package: Option ${bill.option} (GHS ${bill.price} per student)</div>
+        <div>Subtotal: GHS ${bill.subtotal}</div>
+        <div>Delivery Fee: GHS ${bill.delivery}</div>
         <hr>
         <b>Total: GHS ${bill.total}</b>
         `;
@@ -754,8 +1154,13 @@ if (!selectedLangs || selectedLangs.length === 0) {
         const summarySection = document.getElementById("summarySection");
         const summaryText = document.getElementById("summaryText");
 
-        summaryText.innerHTML = summaryHTML;
+      summaryText.innerHTML = summaryHTML;
         summaryText.dataset.school = school;
+        summaryText.dataset.subtotal = bill.subtotal;
+        summaryText.dataset.delivery = bill.delivery;
+        summaryText.dataset.total = bill.total;
+     
+        summaryText.dataset.invoiceUrl = data.invoiceUrl || "";
 
         summarySection.style.display = "block";
         summarySection.scrollIntoView({ behavior: "smooth" });
@@ -764,8 +1169,21 @@ if (!selectedLangs || selectedLangs.length === 0) {
         reloadForm(false);
         loadHistory();
 
-        showToast("Enrollment submitted");
-
+        // data.smsSent / data.whatsappStatus are only present on a NEW
+        // submission (null on an edit) — the backend fires SMS + tries
+        // WhatsApp automatically right after saving. This just reports
+        // what already happened; it never sends anything itself.
+     if (data.isNew) {
+    showToast("Enrollment submitted! Sending SMS & invoice now...");
+} else if (data.smsSent === true) {
+    showToast("Enrollment submitted. Auto SMS sent successfully!");
+} else if (data.smsSent === false) {
+    showToast("Enrollment submitted. Auto SMS failed — please send the bill manually.");
+} else if (data.whatsappStatus === "PENDING") {
+    showToast("Enrollment updated. Sending SMS & invoice now...");
+} else {
+    showToast("Enrollment updated");
+}
     } catch (err) {
         showToast("Server connection failed");
     }
@@ -773,6 +1191,10 @@ if (!selectedLangs || selectedLangs.length === 0) {
     btn.disabled = false;
     btn.innerText = "Submit Enrollment";
 }
+let historyData = [];          // cached full history from the server
+let historyFilterMode = 'all'; // 'all' | 'edited'
+let historyLoadRetries = 0;
+const HISTORY_MAX_RETRIES = 5;
 
 async function loadHistory(){
 
@@ -795,22 +1217,75 @@ token: token
 
 let data = await res.json();
 
-list.innerHTML="";
+if(data.status === "unauthorized"){
+  forceRelogin("Session expired — please log in again");
+  return;
+}
 
-if(!data.history || data.history.length===0){
-list.innerHTML="<li>No records yet</li>";
+if(data.status === "deactivated"){
+  forceRelogin("This account has been deactivated. Contact your administrator.");
+  return;
+}
+
+historyLoadRetries = 0;
+historyData = data.history || [];
+
+renderHistoryList();
+
+}catch(e){
+  historyLoadRetries++;
+  if(historyLoadRetries <= HISTORY_MAX_RETRIES){
+    list.innerHTML="<li class='history-empty'>Reconnecting...</li>";
+    setTimeout(loadHistory, 2000);
+  } else {
+    list.innerHTML="<li class='history-empty'>Couldn't load history. Check your connection and <a href='#' onclick='historyLoadRetries=0;loadHistory();return false;'>tap to retry</a>.</li>";
+  }
+}
+
+}
+
+// Renders historyData through the current search term + filter mode.
+// Called on every keystroke/filter click — no server round-trip needed.
+function renderHistoryList(){
+
+let list = document.getElementById("historyList");
+list.innerHTML = "";
+
+if(!historyData.length){
+list.innerHTML = "<li class='history-empty'>No records yet</li>";
 return;
 }
 
-data.history.forEach(d=>{
+let term = (document.getElementById("historySearch").value || "").trim().toLowerCase();
+
+let filtered = historyData.filter(d=>{
+
+if(historyFilterMode === "edited" && !d.editedTime) return false;
+
+if(term){
+let school = String(d.school || "").toLowerCase();
+let location = String(d.location || "").toLowerCase();
+if(!school.includes(term) && !location.includes(term)) return false;
+}
+
+return true;
+
+});
+
+if(!filtered.length){
+list.innerHTML = "<li class='history-empty'>No matching schools found</li>";
+return;
+}
+
+filtered.forEach(d=>{
 
 let li=document.createElement("li");
 li.className="history-item";
 li.onclick=function(){ editSchool(d); };
 
 li.innerHTML = `
-<b>${d.school}</b>
-<span>${d.location}</span>
+<b>${escapeHtml(d.school)}</b>
+<span>${escapeHtml(d.location)}</span>
 <div class="history-time">
 ${d.editedTime ? "✅EDITED" : "🟢 NEW"}
 <br>
@@ -829,54 +1304,90 @@ list.appendChild(li);
 
 });
 
-}catch(e){
-list.innerHTML="<li>Reconnecting...</li>";
-setTimeout(loadHistory,2000);
 }
 
+function filterHistory(){
+renderHistoryList();
+}
+
+function setHistoryFilter(mode){
+historyFilterMode = mode;
+
+document.getElementById("filterAllBtn").classList.toggle("active", mode === "all");
+document.getElementById("filterEditedBtn").classList.toggle("active", mode === "edited");
+
+renderHistoryList();
 }
 
 
-
+// Sets a <select>'s value by matching case-insensitively — needed because
+// the backend stores region in UPPERCASE ("GREATER ACCRA") while the
+// dropdown options are Title Case ("Greater Accra").
+function setSelectValueCI(selectEl, value){
+  if(!selectEl || !value) return false;
+  let target = String(value).trim().toLowerCase();
+  for(let opt of selectEl.options){
+    if(String(opt.value).trim().toLowerCase() === target){
+      selectEl.value = opt.value;
+      return true;
+    }
+  }
+  return false;
+}
 function editSchool(data){
 
 window.currentSubmissionId = String(data.submissionId || "").trim();
+window.currentSchoolId = data.schoolId || "";
+
+// Remember what this record's last-modified stamp looked like at the
+// moment we loaded it. If someone else edits it before we save, the
+// backend will see this doesn't match anymore and refuse to silently
+// overwrite their change.
+window.currentSubmissionVersion = data.editedTime || data.createdTime || "";
 
   document.getElementById("historyBox").style.display="none";
 
   // BASIC FIELDS
-  document.getElementById("schoolName").value = data.school;
-  document.getElementById("region").value = data.region;
+ document.getElementById("schoolName").value = data.school;
+  setSelectValueCI(document.getElementById("region"), data.region);
   document.getElementById("location").value = data.location;
   document.getElementById("phone").value = data.phone;
+  document.getElementById("packageOption").value = data.packageOption || "";
 
-  document.getElementById("french").value = data.french;
- document.getElementById("examType").value = data.examType || "terminal";
+  // French is always "Yes" for Mock — forced, regardless of what an
+  // older record has stored
+  document.getElementById("french").value = "Yes";
 
-  // rebuild classes first, then restore region + enrollments after DOM settles
+  // rebuild the Basic 9 field first, then restore enrollment + languages after DOM settles
   setTimeout(() => {
     toggleClasses();
 
-    // restore region AFTER toggleClasses (which doesn't touch region, but keep order safe)
-    document.getElementById("region").value = data.region || "";
-
     setTimeout(() => {
-      // RESTORE ENROLLMENTS
+      // RESTORE ENROLLMENT
       for (let k in data.enrollments) {
         let el = document.getElementById(k);
         if (el) el.value = data.enrollments[k];
       }
 
-      //  RESTORE LANGUAGES — handles plain "Asante Twi, Ewe" AND "NO"
+      // RESTORE LANGUAGES — handles "NO", a single language, or multiple
+      // languages with their per-language counts, e.g. "Asante Twi(20), Ewe(10)"
       selectedLangs = [];
+      langValues = {};
 
       if (data.language) {
         if (data.language.trim() === "NO") {
           selectedLangs = ["NO"];
         } else {
           data.language.split(",").forEach(p => {
-            let lang = p.replace(/\(\d+\)/g, "").trim(); // strip counts if any
-            if (lang) selectedLangs.push(lang);
+            let part = p.trim();
+            let match = part.match(/^(.+?)\((\d+)\)$/);
+            if (match) {
+              let lang = match[1].trim();
+              selectedLangs.push(lang);
+              langValues[lang] = match[2];
+            } else if (part) {
+              selectedLangs.push(part);
+            }
           });
         }
       }
@@ -889,27 +1400,34 @@ window.currentSubmissionId = String(data.submissionId || "").trim();
 
   window.scrollTo({top:0,behavior:"smooth"});
 }
-
 function toggleHistory(){
 
 /* HIDE SUMMARY */
 document.getElementById("summarySection").style.display="none";
 
 let box=document.getElementById("historyBox");
-box.style.display=(box.style.display==="block"?"none":"block");
-}
+let opening = box.style.display !== "block";
 
+box.style.display = opening ? "block" : "none";
+
+if(opening){
+document.getElementById("historySearch").value = "";
+setHistoryFilter("all"); // also re-renders the list
+}
+}
 function reloadForm(hideSummary = true){
 
-window.currentSubmissionId = null;
+// Assign the ID for this NEW enrollment attempt right now, once.
+// submitEnrollment() will reuse it on every retry, so a dropped
+// connection after a successful write can never create a duplicate row.
+window.currentSubmissionId = generateSubmissionId();
+window.currentSubmissionVersion = null; // no prior version — this is a fresh row
+window.schoolAutofillApplied = false;
 
 /* CLEAR FORM */
 document.querySelectorAll("#formArea input").forEach(i=>i.value="");
-document.querySelectorAll("#formArea select").forEach(s=>s.selectedIndex=0);
+document.querySelectorAll("#formArea select:not(#french)").forEach(s=>s.selectedIndex=0);
 document.getElementById("classArea").innerHTML="";
-
-/* RESET DISABLED STATES */
-// document.getElementById("packageOption").disabled = false;
 
 /*  CONTROL SUMMARY VISIBILITY */
 if(hideSummary){
@@ -918,15 +1436,15 @@ document.getElementById("summarySection").style.display = "none";
 
 // CLEAR LANGUAGES
 selectedLangs = [];
+langValues = {};
 document.getElementById("selectedLanguages").innerHTML = "";
 document.getElementById("languageEnrollments").innerHTML = "";
 
-//  ALWAYS RESET TO EXAM TYPE  MODE
-let examSelect = document.getElementById("examType");
-examSelect.value = "terminal";
+// REBUILD BASIC 9 FIELD (only class for Mock)
+toggleClasses();
 
-// trigger the same logic as user selecting it
-handleExamChange();
+// FRENCH IS ALWAYS "YES" FOR MOCK — not user editable
+document.getElementById("french").value = "Yes";
 }
 
 function shareWhatsApp(){
@@ -947,16 +1465,20 @@ window.open(`sms:?body=${encodeURIComponent(message)}`);
 
 function buildMessage(school){
 
-let text = summaryText.innerText;
+let ds = document.getElementById("summaryText").dataset;
+
+let invoiceLine = ds.invoiceUrl ? `\n\nInvoice: ${ds.invoiceUrl}` : "";
 
 return `School Name: ${school}
 
-${text}
+Subtotal: GHS ${ds.subtotal}
+Delivery Fee: GHS ${ds.delivery}
+Total: GHS ${ds.total}
 
-Kindly pay through this momo line 
+Kindly pay through any this momo lines 
 0247448883 | 0248726958 | 0207732900 (Bacon Atsu Amengor / Best Brain Examinations Konsortium) 
 
-NB: Please use the name of your school as reference when making payments and send us a screenshot for confirmation.`;
+NB: Please use the name of your school as reference when making payments and send us a screenshot for confirmation.${invoiceLine}`;
 }
 
 document.addEventListener("focusin", function(e){
@@ -968,8 +1490,8 @@ e.target.scrollIntoView({behavior:"smooth", block:"center"});
 });
 
 
-
 let selectedLangs = [];
+let langValues = {}; // {languageName: enrollmentCount} — used only when >1 language selected
 
 function addLanguage(){
 
@@ -984,6 +1506,7 @@ if(selectedLangs.includes(val)) return;
 // if NO is selected, clear others and lock it
 if(val === "NO"){
     selectedLangs = ["NO"];
+    langValues = {};
 }else{
     // if user picks real language, remove NO
     selectedLangs = selectedLangs.filter(l => l !== "NO");
@@ -993,45 +1516,30 @@ if(val === "NO"){
 select.value="";
 renderLanguages();
 }
+
 function removeLanguage(lang){
 selectedLangs = selectedLangs.filter(l => l !== lang);
+delete langValues[lang];
 renderLanguages();
 }
 
-// function renderLanguages(){
-//     let chipBox = document.getElementById("selectedLanguages");
-//     let inputBox = document.getElementById("languageEnrollments");
-
-//     chipBox.innerHTML = "";
-//     inputBox.innerHTML = "";
-
-//     let wrapper = document.createElement("div");
-//     wrapper.className = "lang-inputs";
-
-//     selectedLangs.forEach(lang => {
-//         // Show chip
-//         chipBox.innerHTML += `
-//         <div class="lang-chip">
-//             ${lang} <span onclick="removeLanguage('${lang}')">×</span>
-//         </div>`;
-
-//         // Always show an enrollment input for every selected language
-//         // let input = document.createElement("input");
-//       input.type = "number";
-// input.min = "1";
-// input.required = true;
-//         input.placeholder = `${lang} enrollment`;
-//         input.inputMode = "numeric";
-//         input.pattern = "[0-9]*";
-//         wrapper.appendChild(input);
-//     });
-
-//     inputBox.appendChild(wrapper);
-// }
+// Preserves anything already typed in the per-language enrollment inputs
+// before we wipe and rebuild that part of the DOM.
+function captureLangValues(){
+    document.querySelectorAll("#languageEnrollments input").forEach(inp=>{
+        langValues[inp.dataset.lang] = inp.value;
+    });
+}
 
 function renderLanguages(){
+
+    captureLangValues();
+
     let chipBox = document.getElementById("selectedLanguages");
+    let inputBox = document.getElementById("languageEnrollments");
+
     chipBox.innerHTML = "";
+    inputBox.innerHTML = "";
 
     selectedLangs.forEach(lang => {
         chipBox.innerHTML += `
@@ -1039,8 +1547,29 @@ function renderLanguages(){
             ${lang} <span onclick="removeLanguage('${lang}')">×</span>
         </div>`;
     });
-}
 
+    // Only ask for a per-language split when MORE THAN ONE language is
+    // selected. A single language implies the whole Basic 9 enrollment
+    // goes to it, so no extra input is needed.
+    if(selectedLangs.length > 1 && !selectedLangs.includes("NO")){
+
+        let wrapper = document.createElement("div");
+        wrapper.className = "lang-inputs";
+
+        selectedLangs.forEach(lang => {
+            let input = document.createElement("input");
+            input.type = "tel";
+            input.inputMode = "numeric";
+            input.pattern = "[0-9]*";
+            input.placeholder = `${lang} enrollment`;
+            input.dataset.lang = lang;
+            input.value = langValues[lang] || "";
+            wrapper.appendChild(input);
+        });
+
+        inputBox.appendChild(wrapper);
+    }
+}
 
 
 async function downloadMyData(){
@@ -1072,13 +1601,40 @@ to
 
 let data = await res.json();
 
+if(data.status === "unauthorized"){
+forceRelogin("Session expired — please log in again");
+return;
+}
+
+if(data.status === "deactivated"){
+forceRelogin("This account has been deactivated. Contact your administrator.");
+return;
+}
+
 if(data.status === "no_data"){
 showToast("No records for selected dates");
 return;
 }
 
-if(data.url){
-window.open(data.url);
+
+if(data.status === "success" && data.pdfBase64){
+  const byteChars = atob(data.pdfBase64);
+  const byteNumbers = new Array(byteChars.length);
+  for(let i=0; i<byteChars.length; i++){
+    byteNumbers[i] = byteChars.charCodeAt(i);
+  }
+  const blob = new Blob([new Uint8Array(byteNumbers)], {type:"application/pdf"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = data.filename || "Rep_Report.pdf";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+  showToast("Report downloaded");
 }else{
 showToast("Download failed");
 }
@@ -1089,55 +1645,7 @@ showToast("Download failed");
 
 }
 
-// window.addEventListener("load", () => {
-//   document.getElementById("examType").value = "terminal";
-//   toggleClasses();
-// });
 
-// function saveToHistory(newData){
-
-//     const rep = localStorage.getItem("repId");
-//     const historyKey = "history_" + rep;
-//     let history = JSON.parse(localStorage.getItem(historyKey) || "[]");
-
-//     //  CHECK IF submission already exists
-//     let index = history.findIndex(h => h.submissionId === newData.submissionId);
-
-//     if(index !== -1){
-//         // UPDATE EXISTING (NO DUPLICATE)
-//         history[index] = {
-//             ...history[index],
-//             ...newData,
-//             editedTime: new Date().toLocaleString(),
-//             status: "EDITED"
-//         };
-//     } else {
-//         //  NEW ENTRY
-//         history.push({
-//             ...newData,
-//             createdTime: newData.time,
-//             status: "NEW"
-//         });
-//     }
-
-//     // limit size
-//     if(history.length > 50) history.shift();
-
-//     localStorage.setItem(historyKey, JSON.stringify(history));
-// }
-
-function handleExamChange(){
-
-let type = document.getElementById("examType").value;
-let area = document.getElementById("classArea");
-
-if(type === "terminal"){
-    toggleClasses(); // show inputs
-}else{
-    area.innerHTML = ""; // hide inputs
-}
-
-}
 
 </script>
 
