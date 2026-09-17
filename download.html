@@ -145,6 +145,9 @@
   <body>
     <div class="card">
       <h3>Download School Reports</h3>
+      <p id="examNotice" style="text-align:center;font-size:12px;color:#555;margin:-6px 0 14px;">
+        Downloading for: <b id="examNoticeLabel"></b>
+      </p>
 
       <label>From Date:</label>
       <input type="date" id="fromDate" />
@@ -179,8 +182,34 @@
     <div id="toast"></div>
 
     <script>
-     const API_URL =
-  "https://script.google.com/macros/s/AKfycbyPRyb0tKH18K5CsPDlpYl1reuEGsEYTHcyeAebugtjTquvCDuKMAjbdRFkBxKtut5Y1g/exec";
+     
+      const EXAMS = {
+        OCT: {
+          label: "October Mock (Beta)",
+          apiUrl: "https://script.google.com/macros/s/AKfycbyl1OJhZSEfk96nsFrqZ-WjGVhb8ZIWjVggr-wiIamoQ_Bt8WQUSF12zw9NxNL6uJPFmw/exec"
+        },
+        SEPT: {
+          label: "September Mock (Alpha)",
+          apiUrl: "https://script.google.com/macros/s/AKfycbyPRyb0tKH18K5CsPDlpYl1reuEGsEYTHcyeAebugtjTquvCDuKMAjbdRFkBxKtut5Y1g/exec"
+        }
+      };
+
+      function currentExam(){
+        const e = localStorage.getItem("activeExam");
+        return EXAMS[e] ? e : "OCT";
+      }
+
+      const activeExamCfg = EXAMS[currentExam()];
+      const API_URL = activeExamCfg.apiUrl;
+
+      document.getElementById("examNoticeLabel").textContent = activeExamCfg.label;
+
+      if(activeExamCfg.apiUrl.indexOf("PASTE_") === 0){
+        document.getElementById("examNotice").innerHTML =
+          "This exam's backend isn't configured yet — contact admin.";
+        document.getElementById("examNotice").style.color = "#cc0000";
+        document.getElementById("examNotice").style.fontWeight = "700";
+      }
 
       function showToast(msg) {
         let t = document.getElementById("toast");
@@ -189,7 +218,7 @@
         setTimeout(() => t.classList.remove("show"), 2000);
       }
 
-      // DOWNLOAD REPORRT SCRIPT
+      // DOWNLOAD REPORT SCRIPT
 
       function downloadReport(type) {
         let from = null;
@@ -210,9 +239,6 @@
           showToast("Session expired");
           return;
         }
-
-        // OPEN TAB IMMEDIATELY (Safari fix)
-        const newTab = window.open("", "_blank");
 
         // Loader
         const loader = document.getElementById("loader");
@@ -248,16 +274,12 @@
 
             if (res.status === "success") {
               bar.style.width = "100%";
-              text.innerText = "Opening PDF...";
+              text.innerText = "Downloading...";
 
               setTimeout(() => {
                 loader.classList.remove("show");
 
-                // The backend sends the actual PDF as base64 (pdfBase64),
-                // not a URL — build a real Blob from it and open THAT in
-                // the already-open tab, instead of redirecting to a
-                // "res.url" that was never returned (this was causing the
-                // 404: NOT_FOUND on /undefined).
+                
                 const byteCharacters = atob(res.pdfBase64);
                 const byteNumbers = new Array(byteCharacters.length);
                 for (let i = 0; i < byteCharacters.length; i++) {
@@ -267,11 +289,23 @@
                 const blob = new Blob([byteArray], { type: "application/pdf" });
                 const blobUrl = URL.createObjectURL(blob);
 
-                newTab.location.href = blobUrl;
-              }, 600);
+                const examTag = currentExam(); // "OCT" or "SEPT"
+                const filename = res.filename
+                  ? res.filename.replace(/\.pdf$/i, "") + "_" + examTag + ".pdf"
+                  : "Report_" + examTag + ".pdf";
+
+                const a = document.createElement("a");
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+
+                showToast("Report downloaded");
+              }, 400);
             } else {
               loader.classList.remove("show");
-              newTab.close(); // close blank tab if failed
 
               if (res.status === "no_data") {
                 showToast("No data found");
@@ -283,7 +317,6 @@
           .catch(() => {
             clearInterval(interval);
             loader.classList.remove("show");
-            newTab.close();
             showToast("Network error");
           });
       }

@@ -83,6 +83,60 @@ cursor:not-allowed;
 position:relative;
 }
 
+.balance-modal-overlay{
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:20px;
+  box-sizing:border-box;
+}
+
+.balance-modal-box{
+  background:white;
+  border-radius:12px;
+  width:100%;
+  max-width:340px;
+  max-height:80vh;
+  overflow-y:auto;
+  padding:24px 20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  text-align:center;
+  font-family:'Century Gothic', sans-serif;
+}
+
+.balance-modal-icon{
+  font-size:36px;
+  color:#cc0000;
+  margin-bottom:8px;
+}
+
+.balance-modal-body{
+  font-size:14px;
+  color:#333;
+  line-height:1.5;
+  margin-bottom:18px;
+}
+
+.balance-modal-ok-btn{
+  background:#cc0000;
+  color:white;
+  border:none;
+  border-radius:8px;
+  padding:12px 24px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  width:100%;
+}
+
+.balance-modal-ok-btn:active{
+  opacity:0.85;
+}
+
 .school-suggest-box{
 position:absolute;
 left:0;
@@ -257,12 +311,46 @@ padding:20px;
 font-size:13px;
 list-style:none;
 }
+
+
 .history-time{
 font-size:11px;
 color:#777;
 margin-top:3px;
 }
 
+.history-share-btn{
+margin-top:10px;
+width:100%;
+padding:9px;
+border:none;
+border-radius:8px;
+background:#1c7ed6;
+color:white;
+font-size:13px;
+font-weight:bold;
+cursor:pointer;
+transition:background .2s ease;
+}
+
+/* Blue = invoice not saved on this device yet. Green = saved and ready to
+   share instantly. The button never sits on "preparing" again. */
+.history-share-btn.pending{
+background:#1c7ed6;
+}
+
+.history-share-btn.ready{
+background:#25D366;
+}
+
+.history-share-btn:disabled{
+opacity:.6;
+cursor:default;
+}
+
+.history-share-btn:active{
+opacity:.85;
+}
 #classArea{
 max-height:250px;
 overflow-y:auto;
@@ -385,6 +473,39 @@ top:-7px;
 font-size:11px;
 color:#0d1b66;
 }
+
+.exam-banner{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:8px;
+flex-wrap:wrap;
+font-size:12px;
+color:#333;
+background:#eef1fb;
+border:1px solid #d7dce5;
+border-radius:8px;
+padding:8px 10px;
+margin-bottom:12px;
+}
+
+.exam-banner.exam-SEPT{
+background:#fff4e5;
+border-color:#f0c987;
+}
+
+.exam-switch-btn{
+width:auto;
+margin:0;
+padding:6px 10px;
+font-size:11px;
+background:#0d1b66;
+border-radius:6px;
+}
+
+.exam-banner.exam-SEPT .exam-switch-btn{
+background:#b45f06;
+}
 </style>
 </head>
 
@@ -392,6 +513,16 @@ color:#0d1b66;
 
 <div class="card" id="loginBox">
 <h4>Sales Rep Login</h4>
+
+<label style="display:block;font-size:12px;color:#555;margin:4px 0 2px;">Which exam are you registering for?</label>
+<select id="examSelect">
+<option value="OCT">October Mock (Beta)</option>
+<option value="SEPT">September Mock (Alpha)</option>
+</select>
+<small style="display:block;margin:2px 0 10px;color:#888;font-size:10px;text-align:center;">
+Sign into  September or October Mock. Any exams selected is what you will be registering for. 
+</small>
+
 <input id="repId" placeholder="Rep ID">
 <input id="repPin" type="password" placeholder="PIN">
 
@@ -413,14 +544,21 @@ color:#0d1b66;
 
 <div class="card" id="appBox" style="display:none">
 
+<div id="examBanner" class="exam-banner">
+  Working in: <b id="examBannerLabel"></b>
+  <button type="button" class="exam-switch-btn" onclick="logoutAndSwitchExam()">Logout / Switch Exam</button>
+</div>
+
 <h4 id="formHeader">Register New School</h4>
 
 <div id="formArea">
 
 <!-- BASIC INFO -->
+
 <div class="school-autofill-wrap">
 <input id="schoolName" placeholder="School Name" autocomplete="off" oninput="onSchoolNameInput()" onfocus="onSchoolNameInput()">
 <div id="schoolSuggestBox" class="school-suggest-box" style="display:none"></div>
+<div id="schoolBalanceFlag" style="display:none;color:#cc0000;font-size:13px;font-weight:700;margin-top:4px;text-align:center;font-family:'Century Gothic','Poppins',sans-serif;letter-spacing:0.2px;"></div>
 </div>
 
 <select id="region">
@@ -557,8 +695,87 @@ Registration Portal • Designed by Nick
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbyPRyb0tKH18K5CsPDlpYl1reuEGsEYTHcyeAebugtjTquvCDuKMAjbdRFkBxKtut5Y1g/exec";
 
+const EXAMS = {
+  OCT: {
+    label: "October Mock (Beta)",
+    apiUrl: "https://script.google.com/macros/s/AKfycbyl1OJhZSEfk96nsFrqZ-WjGVhb8ZIWjVggr-wiIamoQ_Bt8WQUSF12zw9NxNL6uJPFmw/exec",
+    examName: "Beta Mock",
+    momoText: "0247448883 | 0248726958 | 0207732900 (Telecel)",
+  
+    supportsFileShare: true
+  },
+  SEPT: {
+    label: "September Mock (Alpha)",
+   
+    apiUrl: "https://script.google.com/macros/s/AKfycbyPRyb0tKH18K5CsPDlpYl1reuEGsEYTHcyeAebugtjTquvCDuKMAjbdRFkBxKtut5Y1g/exec",
+    examName: "Alpha Mock",
+    momoText: "0247448883 | 0248726958",
+   
+    supportsFileShare: false
+  }
+};
+
+function currentExam(){
+  const e = localStorage.getItem("activeExam");
+  return EXAMS[e] ? e : "OCT";
+}
+
+function examSupportsFileShare(){
+  return !!EXAMS[currentExam()].supportsFileShare;
+}
+
+
+function cacheKey(id){
+  return currentExam() + "::" + String(id || "");
+}
+
+function setActiveExam(exam){
+  if(!EXAMS[exam]) exam = "OCT";
+  localStorage.setItem("activeExam", exam);
+  API_URL = EXAMS[exam].apiUrl;
+}
+
+
+let API_URL = EXAMS[currentExam()].apiUrl;
+
+function applyExamBanner(){
+  const exam = currentExam();
+  const cfg = EXAMS[exam];
+  const label = document.getElementById("examBannerLabel");
+  if(label) label.textContent = cfg.label;
+  const banner = document.getElementById("examBanner");
+  if(banner) banner.className = "exam-banner exam-" + exam;
+}
+
+
+function logoutAndSwitchExam(){
+  localStorage.removeItem("token");
+  localStorage.removeItem("repId");
+  localStorage.removeItem("role");
+  historyData = [];
+  document.getElementById("appBox").style.display = "none";
+  document.getElementById("loginBox").style.display = "block";
+  const sel = document.getElementById("examSelect");
+  if(sel) sel.value = currentExam();
+}
+
+
+async function postJSON(payload, timeoutMs = 20000){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try{
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
 // The only language values the form is allowed to submit — must match
 // the <option> list in the #language <select> exactly, plus "NO".
 const VALID_LANGUAGES = ["Asante Twi","Akuapem Twi","Ga","Ewe","Fante","Dagbani","Dagaare","Dangme","Gonja","Kasem","Nzema","NO"];
@@ -594,10 +811,7 @@ function forceRelogin(message){
   showToast(message || "Session expired — please log in again");
 }
 
-// Escapes user-supplied text (school/location/phone come straight from the
-// sheet, which anyone with a rep login can write to) before it's inserted
-// via innerHTML. Without this a school name like <img src=x onerror=...>
-// would execute as stored XSS the next time any rep's history list renders it.
+
 function escapeHtml(str){
   return String(str == null ? "" : str)
     .replace(/&/g, "&amp;")
@@ -607,10 +821,7 @@ function escapeHtml(str){
     .replace(/'/g, "&#39;");
 }
 
-// One unique ID per NEW enrollment attempt, generated once and reused
-// across retries so a dropped connection can never create a duplicate
-// row — the backend will treat a repeated ID as an edit of the same
-// row (a no-op if nothing changed) rather than a fresh submission.
+
 function generateSubmissionId(){
   return Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 10);
 }
@@ -619,7 +830,7 @@ function generateSubmissionId(){
 window.repSchoolHistory = null;      // cached list, once loaded
 window.repSchoolHistoryLoading = false;
 
-async function loadRepSchoolHistory(){
+async function loadRepSchoolHistory(attempt = 1){
 
   const token = localStorage.getItem("token");
   if(!token) return;
@@ -637,19 +848,29 @@ async function loadRepSchoolHistory(){
     });
 
     let data = await res.json();
+    if(data.status !== "ok") throw new Error(data.status || "failed");
+
     window.repSchoolHistory = data.suggestions || [];
+    window.repSchoolHistoryLoading = false;
 
   }catch(err){
-    window.repSchoolHistory = null; // will fall back to live query
-  }finally{
-    window.repSchoolHistoryLoading = false;
+    // A cold backend or a network blip used to leave autofill silently dead
+    // until the rep logged out and back in. Retry quietly in the background
+    // instead — repSchoolHistoryLoading stays true across the retries, so
+    // onSchoolNameInput's poll keeps waiting rather than giving up.
+    if(attempt < 3){
+      setTimeout(() => loadRepSchoolHistory(attempt + 1), attempt * 700);
+    } else {
+      window.repSchoolHistory = null; // out of retries — fall back to live queries
+      window.repSchoolHistoryLoading = false;
+    }
   }
 }
-
 let schoolSuggestTimer = null;
 let schoolSuggestAbortToken = 0;
 
 window.schoolAutofillApplied = false;
+
 
 function clearSchoolAutofill(){
 
@@ -664,6 +885,8 @@ function clearSchoolAutofill(){
   selectedLangs = [];
   langValues = {};
   renderLanguages();
+
+  checkSchoolBalanceFlag(""); // hide the balance flag along with everything else
 
   window.schoolAutofillApplied = false;
 }
@@ -690,11 +913,6 @@ function onSchoolNameInput(){
     return;
   }
 
-// Typing manually invalidates whatever school was previously picked
-  // from a suggestion — submitEnrollment() will re-resolve the ID
-  // server-side, but this keeps the client-side state honest too.
-  window.currentSchoolId = "";
-
   // FAST PATH: cache already loaded — filter locally, instantly
   if(Array.isArray(window.repSchoolHistory)){
     const q = query.toUpperCase();
@@ -705,11 +923,33 @@ function onSchoolNameInput(){
       )
       .slice(0, 8);
     renderSchoolSuggestions(filtered);
+
+
+    const exact = filtered.find(s => String(s.school || "").toUpperCase() === q);
+    if(exact){
+      if(window.currentSchoolId !== exact.schoolId){
+        window.currentSchoolId = exact.schoolId;
+        checkSchoolBalanceFlag(exact.schoolId);
+      }
+    } else if(window.currentSchoolId){
+      window.currentSchoolId = "";
+      checkSchoolBalanceFlag("");
+    }
     return;
   }
 
+
+  window.currentSchoolId = "";
+  checkSchoolBalanceFlag("");
+
   // SLOW PATH FALLBACK: cache not ready — ask backend directly (debounced)
   if(!window.repSchoolHistoryLoading){
+    // Cache previously ran out of retries and gave up — kick it off again
+    // quietly so the NEXT keystroke can hit the fast path, without making
+    // the rep log out and back in just to get autofill working again.
+    if(window.repSchoolHistory === null){
+      loadRepSchoolHistory();
+    }
     schoolSuggestTimer = setTimeout(() => fetchSchoolSuggestions(query), 200);
   } else {
     // cache is on its way — try again shortly rather than hitting the backend
@@ -770,15 +1010,121 @@ function renderSchoolSuggestions(suggestions){
   box.style.display = "block";
 }
 
+window._balanceCheckCache = window._balanceCheckCache || {};
+
+function applyBalanceResult_(flagEl, data){
+  if(data && data.found && data.hasBalance){
+    const amount = Number(data.balance).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    flagEl.textContent = "Owes GHS " + amount + " (" + data.examLabel + ")";
+    flagEl.style.display = "block";
+
+    window.currentSchoolHasBalance = true;
+    window.currentSchoolBalanceAmount = Number(data.balance) || 0;
+    window.currentSchoolBalanceExamLabel = data.examLabel || "";
+  } else {
+    flagEl.style.display = "none";
+    flagEl.textContent = "";
+
+    window.currentSchoolHasBalance = false;
+    window.currentSchoolBalanceAmount = 0;
+    window.currentSchoolBalanceExamLabel = "";
+  }
+}
+
+async function checkSchoolBalanceFlag(schoolId){
+  const flagEl = document.getElementById("schoolBalanceFlag");
+
+  if(!schoolId){
+    flagEl.style.display = "none";
+    flagEl.textContent = "";
+    window.currentSchoolHasBalance = false;
+    window.currentSchoolBalanceAmount = 0;
+    window.currentSchoolBalanceExamLabel = "";
+    window.balanceOverrideAcknowledged = false;
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+  if(!token) return;
+
+  // INSTANT PATH — already checked this school this session, skip the network round trip entirely
+  if(window._balanceCheckCache.hasOwnProperty(schoolId)){
+    applyBalanceResult_(flagEl, window._balanceCheckCache[schoolId]);
+    window.balanceOverrideAcknowledged = false;
+    return;
+  }
+
+  try{
+    let res = await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({
+        action:"checkBalance",
+        token: token,
+        schoolId: schoolId
+      })
+    });
+
+    let data = await res.json();
+
+    window._balanceCheckCache[schoolId] = data;
+    applyBalanceResult_(flagEl, data);
+
+    // school identity/balance just (re)resolved — any earlier
+    // confirmation no longer applies, force a fresh one
+    window.balanceOverrideAcknowledged = false;
+
+  }catch(err){
+    // silent fail — this is an advisory flag, never blocks registration
+    flagEl.style.display = "none";
+    window.currentSchoolHasBalance = false;
+  }
+}
+
+
+
+function showBalanceWarningModal(school, amount, examLabel){
+  return new Promise((resolve) => {
+    const overlay = document.getElementById("balanceOverrideModal");
+    const amountText = Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    document.getElementById("balanceModalBody").innerHTML =
+      `<b>${escapeHtml(school)}</b> has an outstanding balance of <b>GHS ${amountText}</b> from ${escapeHtml(examLabel || "")}.<br><br>` +
+      `Please resolve this with the school first.<br><br>` +
+      `If you're sure you want to register them anyway, press Submit again.`;
+
+    overlay.style.display = "flex";
+
+    const okBtn = document.getElementById("balanceModalOkBtn");
+    const handler = () => {
+      overlay.style.display = "none";
+      okBtn.removeEventListener("click", handler);
+      resolve();
+    };
+    okBtn.addEventListener("click", handler);
+  });
+}
+
 function applySchoolSuggestion(i){
+    
+
+
+
 
   const s = (window.currentSchoolSuggestions || [])[i];
   if(!s) return;
 
-  document.getElementById("schoolName").value = s.school || "";
+// NEW
+   document.getElementById("schoolName").value = s.school || "";
   document.getElementById("location").value = s.location || "";
   document.getElementById("phone").value = s.phone || "";
   window.currentSchoolId = s.schoolId || "";
+
+  
+  window.confirmedSchoolId = s.schoolId || "";
+  window.confirmedSchoolName = String(s.school || "").trim().toUpperCase();
+
+  checkSchoolBalanceFlag(window.currentSchoolId);
 
   if(s.region){
     setSelectValueCI(document.getElementById("region"), s.region);
@@ -816,6 +1162,9 @@ function applySchoolSuggestion(i){
   document.getElementById("schoolSuggestBox").innerHTML = "";
 }
 
+
+
+
 // hide the suggestion dropdown when clicking anywhere else
 document.addEventListener("click", function(e){
   const wrap = document.querySelector(".school-autofill-wrap");
@@ -826,60 +1175,73 @@ document.addEventListener("click", function(e){
 
 
 
+
 async function login(){
 
-let btn=document.getElementById("loginBtn");
-btn.disabled=true;
-btn.innerText="Logging in...";
+  const btn=document.getElementById("loginBtn");
+  btn.disabled=true;
+  btn.innerText="Logging in...";
 
-let rep=document.getElementById("repId").value;
+  const examChoice = document.getElementById("examSelect").value;
+  const examCfg = EXAMS[examChoice];
 
-try{
+  if(!examCfg || examCfg.apiUrl.indexOf("PASTE_") === 0){
+    showToast("That exam's backend isn't configured yet  contact admin");
+    btn.disabled=false;
+    btn.innerText="Login";
+    return;
+  }
 
-let res=await fetch(API_URL,{
-method:"POST",
-headers:{ "Content-Type":"text/plain;charset=utf-8"},
-body:JSON.stringify({
-action:"login",
-repId:rep,
-pin:document.getElementById("repPin").value
-})
-});
+  
+  setActiveExam(examChoice);
 
-let data=await res.json();
-if(data.status==="ok"){
+  const rep=document.getElementById("repId").value;
+  const pin=document.getElementById("repPin").value;
 
-localStorage.setItem("token", data.token);
-localStorage.setItem("repId", rep);
-localStorage.setItem("role", data.role); // 
+  let data = null;
 
-/* LOAD UI IMMEDIATELY */
-loginBox.style.display="none";
-appBox.style.display="block";
+  // Try up to twice with a hard 15s timeout each — most "connection
+  // errors" are one dropped packet, not the device actually being offline.
+  for(let attempt = 1; attempt <= 2 && !data; attempt++){
+    try{
+      data = await postJSON({ action:"login", repId:rep, pin:pin }, 15000);
+    }catch(err){
+      if(attempt === 1) await new Promise(r => setTimeout(r, 800));
+    }
+  }
 
-/* SET UP MOCK FORM DEFAULTS — Basic 9 field + French forced to Yes */
-reloadForm(true);
+  if(!data){
+    showToast("Connection error please try again");
+    btn.disabled=false;
+    btn.innerText="Login";
+    return;
+  }
 
-/* LOAD HISTORY PER REP */
-loadHistory();
+  if(data.status==="ok"){
 
-/* PRELOAD SCHOOL AUTOFILL CACHE (instant suggestions, no per-keystroke lag) */
-loadRepSchoolHistory();
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("repId", rep);
+    localStorage.setItem("role", data.role);
 
-showToast("Login successful");
+    loadRepSchoolHistory();
 
-}else if(data.status === "locked"){
-showToast("Too many failed attempts. Try again in 15 minutes.");
-}else{
-showToast("Invalid login");
-}
+    loginBox.style.display="none";
+    appBox.style.display="block";
+    applyExamBanner();
 
-}catch(err){
-showToast("Connection error");
-}
+    reloadForm(true);
+    loadHistory();
 
-btn.disabled=false;
-btn.innerText="Login";
+    showToast("Login successful  " + examCfg.label);
+
+  }else if(data.status === "locked"){
+    showToast("Too many failed attempts. Try again in 15 minutes.");
+  }else{
+    showToast("Invalid login");
+  }
+
+  btn.disabled=false;
+  btn.innerText="Login";
 }
 
 // function toggleClasses(){
@@ -1038,8 +1400,21 @@ async function submitEnrollment() {
             btn.innerText = "Submit Enrollment";
             return;
         }
-
         languageVal = langParts.join(", ");
+    }
+
+    // OUTSTANDING BALANCE — block the first attempt with a responsive
+    // modal warning, let it through on the very next click
+    if (window.currentSchoolHasBalance && !window.balanceOverrideAcknowledged) {
+        await showBalanceWarningModal(
+            school,
+            window.currentSchoolBalanceAmount,
+            window.currentSchoolBalanceExamLabel
+        );
+        window.balanceOverrideAcknowledged = true;
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
     }
 
     // CALCULATE BILL
@@ -1053,36 +1428,85 @@ async function submitEnrollment() {
     }
     const submissionId = window.currentSubmissionId;
 
+    
+    const confirmedSchoolIdToSend =
+        (window.confirmedSchoolId && window.confirmedSchoolName === school.toUpperCase())
+            ? window.confirmedSchoolId
+            : "";
+
+    const submitPayload = {
+        action: "submit",
+        token: localStorage.getItem("token"),
+        submissionId,
+        expectedVersion: window.currentSubmissionVersion || null,
+        school,
+        schoolId: confirmedSchoolIdToSend,
+        region: regionVal,
+        location: locationVal,
+        phone: phoneVal,
+        language: languageVal,
+        french: frenchVal,
+        examType: exam,
+        packageOption: packageVal,
+        enrollments,
+        totalBill: bill.total,
+        balanceOverride: window.currentSchoolHasBalance ? true : false,
+        balanceAtSubmission: window.currentSchoolHasBalance ? window.currentSchoolBalanceAmount : 0
+    };
+
+    let data = null;
+
     try {
-
-        // SEND FIRST
-        let res = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-           body: JSON.stringify({
-                action: "submit",
+        data = await postJSON(submitPayload, 25000); // hard cap — never hang forever
+    } catch (err) {
+        // The write may well have already landed on the server even though
+        // this request timed out/dropped. Before telling the rep it failed
+        // (and risking a confusing resubmit), ask the backend directly
+        // whether this exact submissionId was saved.
+        try {
+            const check = await postJSON({
+                action: "checkSubmission",
                 token: localStorage.getItem("token"),
-                submissionId,
-                expectedVersion: window.currentSubmissionVersion || null,
+                submissionId
+            }, 10000);
+
+            if (check && check.status === "ok" && check.found) {
+                data = {
+                    status: "success",
+                    submissionId: submissionId,
+                    schoolId: check.schoolId,
+                    invoiceUrl: check.invoiceUrl || "",
+                    isNew: null,       // unknown from this recovery path
+                    billChanged: null,
+                    smsSent: null,
+                    whatsappStatus: null
+                };
+            }
+        } catch (checkErr) {
+            // still no luck — falls through to the generic message below
+        }
+    }
+
+    if (!data) {
+        showToast("Connection lost — nothing was sent. Please try again.");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
+
+        // SERVER-SIDE BALANCE BLOCK — the backend found an outstanding
+        // balance the form didn't know about (e.g. the school ID was only
+        // resolved server-side). Warn once, then let the next click through.
+        if (data.status === "balance_block") {
+            await showBalanceWarningModal(
                 school,
-                schoolId: window.currentSchoolId || "",
-                region: regionVal,
-                location: locationVal,
-                phone: phoneVal,
-                language: languageVal,
-                french: frenchVal,
-                examType: exam,
-                packageOption: packageVal,
-                enrollments,
-                totalBill: bill.total
-            })
-        });
-
-        let data = await res.json();
-
-        // SESSION EXPIRED — bounce to login instead of a confusing retry loop
-        if (data.status === "unauthorized") {
-            forceRelogin("Session expired — please log in again to continue");
+                data.balance,
+                data.examLabel
+            );
+            window.currentSchoolHasBalance = true;
+            window.currentSchoolBalanceAmount = Number(data.balance) || 0;
+            window.currentSchoolBalanceExamLabel = data.examLabel || "";
+            window.balanceOverrideAcknowledged = true;
             btn.disabled = false;
             btn.innerText = "Submit Enrollment";
             return;
@@ -1099,8 +1523,24 @@ async function submitEnrollment() {
 
         // EDITING AN EXISTING RECORD BUT NOTHING ACTUALLY CHANGED — this is
         // not a failure, so don't tell the rep it wasn't saved.
-        if (data.status === "no_change") {
-            showToast("No changes to save");
+             if (data.status === "no_change") {
+            showToast("Already saved — this registration already went through");
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            return;
+        }
+
+        // SAME SCHOOL, SAME DETAILS ALREADY REGISTERED under a different
+        // submission (a genuine re-entry, or a resubmit that picked up a new
+        // submissionId after a dropped network reply) — reassure, don't
+        // create a second row.
+        if (data.status === "duplicate") {
+            showToast("School already registered");
+            const summaryText = document.getElementById("summaryText");
+            if (summaryText && data.invoiceUrl) {
+                summaryText.dataset.invoiceUrl = data.invoiceUrl;
+                summaryText.dataset.submissionId = data.submissionId || "";
+            }
             btn.disabled = false;
             btn.innerText = "Submit Enrollment";
             return;
@@ -1110,7 +1550,7 @@ async function submitEnrollment() {
         // silently overwrite their change. Send the rep back to history
         // to pull the latest version before retrying.
         if (data.status === "conflict") {
-            showToast("This record was updated by someone else — reload history and try again");
+            showToast("This record was updated by someone else reload history and try again");
             btn.disabled = false;
             btn.innerText = "Submit Enrollment";
             loadHistory();
@@ -1118,7 +1558,7 @@ async function submitEnrollment() {
         }
 
         if (data.status === "busy") {
-            showToast("Server is busy — please try again in a few seconds");
+            showToast("Server is busy please try again in a few seconds");
             btn.disabled = false;
             btn.innerText = "Submit Enrollment";
             return;
@@ -1161,9 +1601,20 @@ async function submitEnrollment() {
         summaryText.dataset.total = bill.total;
      
         summaryText.dataset.invoiceUrl = data.invoiceUrl || "";
+        summaryText.dataset.submissionId = data.submissionId || "";
 
-        summarySection.style.display = "block";
+               summarySection.style.display = "block";
         summarySection.scrollIntoView({ behavior: "smooth" });
+
+        // Fire-and-forget. The invoice is built by the server queue; nothing
+        // here waits for it. The rep gets the summary and a cleared form
+        // immediately, and the PDF quietly lands in this device's cache,
+        // turning that school's History button green when it's ready.
+        // (Only meaningful on October — September has no getInvoicePdf
+        // endpoint to poll, so skip the wasted requests entirely.)
+        if(examSupportsFileShare()){
+          warmInvoiceCache(data.submissionId, school);
+        }
 
         // RESET FORM AFTER SUCCESS
         reloadForm(false);
@@ -1173,20 +1624,21 @@ async function submitEnrollment() {
         // submission (null on an edit) — the backend fires SMS + tries
         // WhatsApp automatically right after saving. This just reports
         // what already happened; it never sends anything itself.
-     if (data.isNew) {
-    showToast("Enrollment submitted! Sending SMS & invoice now...");
-} else if (data.smsSent === true) {
-    showToast("Enrollment submitted. Auto SMS sent successfully!");
-} else if (data.smsSent === false) {
-    showToast("Enrollment submitted. Auto SMS failed — please send the bill manually.");
-} else if (data.whatsappStatus === "PENDING") {
-    showToast("Enrollment updated. Sending SMS & invoice now...");
-} else {
-    showToast("Enrollment updated");
-}
-    } catch (err) {
-        showToast("Server connection failed");
-    }
+        if (data.isNew) {
+            showToast("Enrollment submitted! Sending SMS & invoice now...");
+        } else if (data.smsSent === true) {
+            showToast("Enrollment submitted. Auto SMS sent successfully!");
+        } else if (data.smsSent === false) {
+            showToast("Enrollment submitted. Auto SMS failed — please send the bill manually.");
+        } else if (data.whatsappStatus === "PENDING") {
+            showToast("Enrollment updated. Sending SMS & invoice now...");
+        } else if (data.isNew === null) {
+            // came back via the checkSubmission recovery path — we know it
+            // saved, but not whether it was new or an edit
+            showToast("Enrollment saved successfully");
+        } else {
+            showToast("Enrollment updated");
+        }
 
     btn.disabled = false;
     btn.innerText = "Submit Enrollment";
@@ -1195,6 +1647,35 @@ let historyData = [];          // cached full history from the server
 let historyFilterMode = 'all'; // 'all' | 'edited'
 let historyLoadRetries = 0;
 const HISTORY_MAX_RETRIES = 5;
+const HISTORY_CACHE_PREFIX = "history_cache_";
+
+function historyCacheKey(){
+  return HISTORY_CACHE_PREFIX + currentExam() + "_" + (localStorage.getItem("repId") || "");
+}
+
+// Paints the last known list straight from device storage so History is never
+// blank or stuck on "Loading..." while the network round-trip is in flight.
+function primeHistoryFromCache(){
+  try{
+    const raw = localStorage.getItem(historyCacheKey());
+    if(!raw) return false;
+    const cached = JSON.parse(raw);
+    if(!Array.isArray(cached) || !cached.length) return false;
+    historyData = cached;
+    renderHistoryList();
+    return true;
+  }catch(err){
+    return false;
+  }
+}
+
+function saveHistoryToCache(){
+  try{
+    localStorage.setItem(historyCacheKey(), JSON.stringify(historyData.slice(0, 300)));
+  }catch(err){
+    // storage full — the list still works, it just won't be instant next time
+  }
+}
 
 async function loadHistory(){
 
@@ -1202,7 +1683,19 @@ let token = localStorage.getItem("token");
 if(!token) return;
 
 let list=document.getElementById("historyList");
-list.innerHTML="Loading...";
+
+// Show something immediately: whatever is already in memory, else the cached
+// copy from the last session. "Loading..." only appears on a true cold start.
+let hadSomething = false;
+if(historyData.length){
+  renderHistoryList();
+  hadSomething = true;
+} else {
+  hadSomething = primeHistoryFromCache();
+}
+if(!hadSomething){
+  list.innerHTML="<li class='history-empty'>Loading...</li>";
+}
 
 try{
 
@@ -1229,15 +1722,18 @@ if(data.status === "deactivated"){
 
 historyLoadRetries = 0;
 historyData = data.history || [];
+saveHistoryToCache();
 
 renderHistoryList();
 
 }catch(e){
   historyLoadRetries++;
   if(historyLoadRetries <= HISTORY_MAX_RETRIES){
-    list.innerHTML="<li class='history-empty'>Reconnecting...</li>";
+    if(!hadSomething){
+      list.innerHTML="<li class='history-empty'>Reconnecting...</li>";
+    }
     setTimeout(loadHistory, 2000);
-  } else {
+  } else if(!hadSomething){
     list.innerHTML="<li class='history-empty'>Couldn't load history. Check your connection and <a href='#' onclick='historyLoadRetries=0;loadHistory();return false;'>tap to retry</a>.</li>";
   }
 }
@@ -1276,8 +1772,7 @@ if(!filtered.length){
 list.innerHTML = "<li class='history-empty'>No matching schools found</li>";
 return;
 }
-
-filtered.forEach(d=>{
+filtered.forEach((d, idx)=>{
 
 let li=document.createElement("li");
 li.className="history-item";
@@ -1299,6 +1794,45 @@ ${new Date(d.editedTime).toLocaleString()}
 ` : ""}
 </div>
 `;
+
+// The invoice is saved to this device once and then reused forever. The
+// button starts blue ("save"), and flips to green ("share") the moment the
+// PDF is on the device. It only ever goes back to blue when the record is
+// edited, because the version stamp below changes and invalidates the copy.
+//
+// September's backend has no getInvoicePdf endpoint, so there's no PDF to
+// cache on-device there — the button just opens the Drive link directly
+// (same as how invoices worked before on-device caching existed).
+let shareBtn = document.createElement("button");
+shareBtn.type = "button";
+shareBtn.dataset.submissionId = String(d.submissionId || "");
+shareBtn.dataset.version = invoiceVersionOf(d);
+shareBtn.onclick = function(event){
+  event.stopPropagation(); // don't also trigger editSchool()
+  shareHistoryInvoice(d, shareBtn);
+};
+
+if(examSupportsFileShare()){
+  shareBtn.className = "history-share-btn pending";
+  shareBtn.textContent = "Save Invoice for Sharing";
+  li.appendChild(shareBtn);
+
+  // Already on the device? Go green straight away — no network call, no
+  // regeneration, and it survives closing the app.
+  loadCachedInvoice(shareBtn.dataset.submissionId, shareBtn.dataset.version)
+    .then(function(file){
+      if(file){
+        setShareBtnReady(shareBtn);
+      } else if(idx < 6){
+        // Quietly fetch the newest few so they're green before the rep asks.
+        warmInvoiceCache(d.submissionId, d.school, shareBtn.dataset.version);
+      }
+    });
+} else {
+  shareBtn.className = "history-share-btn ready";
+  shareBtn.textContent = "Open Invoice";
+  li.appendChild(shareBtn);
+}
 
 list.appendChild(li);
 
@@ -1334,15 +1868,18 @@ function setSelectValueCI(selectEl, value){
   }
   return false;
 }
+
+
 function editSchool(data){
 
 window.currentSubmissionId = String(data.submissionId || "").trim();
 window.currentSchoolId = data.schoolId || "";
 
-// Remember what this record's last-modified stamp looked like at the
-// moment we loaded it. If someone else edits it before we save, the
-// backend will see this doesn't match anymore and refuse to silently
-// overwrite their change.
+
+window.confirmedSchoolId = data.schoolId || "";
+window.confirmedSchoolName = String(data.school || "").trim().toUpperCase();
+
+
 window.currentSubmissionVersion = data.editedTime || data.createdTime || "";
 
   document.getElementById("historyBox").style.display="none";
@@ -1423,6 +1960,12 @@ function reloadForm(hideSummary = true){
 window.currentSubmissionId = generateSubmissionId();
 window.currentSubmissionVersion = null; // no prior version — this is a fresh row
 window.schoolAutofillApplied = false;
+window.currentSchoolHasBalance = false;
+window.currentSchoolBalanceAmount = 0;
+window.currentSchoolBalanceExamLabel = "";
+window.balanceOverrideAcknowledged = false;
+window.confirmedSchoolId = "";
+window.confirmedSchoolName = "";
 
 /* CLEAR FORM */
 document.querySelectorAll("#formArea input").forEach(i=>i.value="");
@@ -1447,11 +1990,203 @@ toggleClasses();
 document.getElementById("french").value = "Yes";
 }
 
+/* ================= INVOICE CACHE (saved on device) =================
+   An invoice is downloaded ONCE and then kept in IndexedDB, keyed by
+   submissionId along with a version stamp (editedTime || createdTime).
+   It is reused forever from that point on — across reloads and app
+   restarts — and is only ever refetched when the stamp changes, which
+   happens only when the registration is edited. Nothing in the submit
+   path waits on any of this.
+=================================================================== */
+const INVOICE_DB_NAME = "bbek_invoices";
+const INVOICE_STORE   = "pdfs";
+
+let _invoiceDbPromise = null;
+const _invoiceMemCache = new Map();   // submissionId -> {submissionId, version, name, bytes}
+
+function openInvoiceDb(){
+    if(_invoiceDbPromise) return _invoiceDbPromise;
+    _invoiceDbPromise = new Promise(function(resolve){
+        try{
+            const req = indexedDB.open(INVOICE_DB_NAME, 1);
+            req.onupgradeneeded = function(){
+                const db = req.result;
+                if(!db.objectStoreNames.contains(INVOICE_STORE)){
+                    db.createObjectStore(INVOICE_STORE, { keyPath: "submissionId" });
+                }
+            };
+            req.onsuccess = function(){ resolve(req.result); };
+            req.onerror   = function(){ resolve(null); };
+        }catch(err){
+            resolve(null); // private mode / storage blocked — memory cache still works
+        }
+    });
+    return _invoiceDbPromise;
+}
+
+async function idbGetInvoice(submissionId){
+    const db = await openInvoiceDb();
+    if(!db) return null;
+    return new Promise(function(resolve){
+        try{
+            const req = db.transaction(INVOICE_STORE, "readonly")
+                          .objectStore(INVOICE_STORE).get(String(submissionId));
+            req.onsuccess = function(){ resolve(req.result || null); };
+            req.onerror   = function(){ resolve(null); };
+        }catch(err){ resolve(null); }
+    });
+}
+
+async function idbPutInvoice(rec){
+    const db = await openInvoiceDb();
+    if(!db) return;
+    try{
+        db.transaction(INVOICE_STORE, "readwrite").objectStore(INVOICE_STORE).put(rec);
+    }catch(err){}
+}
+
+// An edit moves editedTime, which is exactly when a fresh invoice is issued.
+function invoiceVersionOf(d){
+    if(!d) return "";
+    return String(d.editedTime || d.createdTime || "");
+}
+
+function invoiceVersionFor(submissionId){
+    const row = (historyData || []).find(function(h){
+        return String(h.submissionId) === String(submissionId);
+    });
+    return invoiceVersionOf(row);
+}
+
+function invoiceFileFromRecord(rec){
+    return new File([rec.bytes], rec.name, { type: "application/pdf" });
+}
+
+// SYNCHRONOUS on purpose. navigator.share() must be called while the click's
+// transient activation is still alive, and any await burns it — that was the
+// old "stuck on preparing" behaviour. Returns null if not already in memory.
+// Keyed via cacheKey() (exam-prefixed) so a September and October copy of
+// the app never collide in the same browser's memory/IndexedDB.
+function getCachedInvoiceFile(submissionId, version){
+    const rec = _invoiceMemCache.get(cacheKey(submissionId));
+    if(!rec) return null;
+    if(version && rec.version && rec.version !== version) return null; // edited since
+    return invoiceFileFromRecord(rec);
+}
+
+// Pulls a saved invoice up from IndexedDB into memory (once per session).
+async function loadCachedInvoice(submissionId, version){
+    const rawId = String(submissionId || "");
+    if(!rawId) return null;
+
+    const hit = getCachedInvoiceFile(rawId, version);
+    if(hit) return hit;
+
+    const key = cacheKey(rawId);
+    const rec = await idbGetInvoice(key);
+    if(!rec) return null;
+    if(version && rec.version && rec.version !== version) return null;
+
+    _invoiceMemCache.set(key, rec);
+    return invoiceFileFromRecord(rec);
+}
+
+// Downloads the PDF and saves it. Returns null when the server hasn't
+// finished generating it yet — that's expected right after a submit.
+// Only ever called when examSupportsFileShare() is true (October) — the
+// September backend has no getInvoicePdf endpoint (see shareHistoryInvoice).
+async function fetchAndCacheInvoice(submissionId, schoolName, version){
+    const token = localStorage.getItem("token");
+    const rawId = String(submissionId || "");
+    if(!token || !rawId || !examSupportsFileShare()) return null;
+
+    try{
+        const res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "getInvoicePdf", token, submissionId: rawId })
+        });
+        const data = await res.json();
+        if(!(data.status === "ok" && data.ready && data.base64)) return null;
+
+        const chars = atob(data.base64);
+        const bytes = new Uint8Array(chars.length);
+        for(let i = 0; i < chars.length; i++) bytes[i] = chars.charCodeAt(i);
+
+        const key = cacheKey(rawId);
+        const rec = {
+            submissionId: key,
+            version: version || invoiceVersionFor(rawId),
+            name: `Invoice - ${schoolName || "School"}.pdf`,
+            bytes: bytes
+        };
+
+        _invoiceMemCache.set(key, rec);
+        idbPutInvoice(rec);
+
+        return invoiceFileFromRecord(rec);
+    }catch(err){
+        return null;
+    }
+}
+
+function setShareBtnReady(btn){
+    if(!btn) return;
+    btn.classList.remove("pending");
+    btn.classList.add("ready");
+    btn.dataset.ready = "1";
+    btn.textContent = "Share Invoice via WhatsApp";
+}
+
+function markInvoiceReadyInHistory(submissionId){
+    document.querySelectorAll(".history-share-btn").forEach(function(btn){
+        if(btn.dataset.submissionId === String(submissionId)) setShareBtnReady(btn);
+    });
+}
+
+// Background warm-up. Never awaited by anything the rep is waiting on.
+// Polls until the queued invoice exists, saves it, then flips the button green.
+function warmInvoiceCache(submissionId, schoolName, version, maxWaitMs = 180000, intervalMs = 5000){
+    const key = String(submissionId || "");
+    if(!key) return;
+
+    window._invoiceWarming = window._invoiceWarming || {};
+    if(window._invoiceWarming[key]) return;   // already polling for this one
+    window._invoiceWarming[key] = true;
+
+    (async function(){
+        const started = Date.now();
+        try{
+            while(Date.now() - started < maxWaitMs){
+                const file = await fetchAndCacheInvoice(key, schoolName, version);
+                if(file){
+                    markInvoiceReadyInHistory(key);
+                    return;
+                }
+                await new Promise(function(r){ setTimeout(r, intervalMs); });
+            }
+        } finally {
+            delete window._invoiceWarming[key];
+        }
+    })();
+}
+
 function shareWhatsApp(){
 
-let school = document.getElementById("summaryText").dataset.school;
-let message = buildMessage(school);
+const ds = document.getElementById("summaryText").dataset;
+const school = ds.school;
+const message = buildMessage(school);
 
+// No awaits before navigator.share() — see getCachedInvoiceFile above.
+const file = getCachedInvoiceFile(ds.submissionId, "");
+
+if(file && navigator.canShare && navigator.canShare({ files: [file] })){
+    navigator.share({ files: [file], text: message })
+        .catch(() => window.open(`https://wa.me/?text=${encodeURIComponent(message)}`));
+    return;
+}
+
+showToast("Bill sent by SMS. The invoice is still being built — share it from History once its button turns green.");
 window.open(`https://wa.me/?text=${encodeURIComponent(message)}`);
 }
 
@@ -1463,22 +2198,93 @@ let message = buildMessage(school);
 window.open(`sms:?body=${encodeURIComponent(message)}`);
 }
 
-function buildMessage(school){
 
-let ds = document.getElementById("summaryText").dataset;
+// Mirrors EXAM_NAME + COMPANY_MOMO_LINES in whichever backend script is
+// currently active — pulled from EXAMS[] so this never drifts out of
+// sync with which exam the rep is actually logged into.
+function buildMessage(school, total){
 
-let invoiceLine = ds.invoiceUrl ? `\n\nInvoice: ${ds.invoiceUrl}` : "";
+if(total === undefined){
+  let ds = document.getElementById("summaryText").dataset;
+  total = ds.total;
+}
 
-return `School Name: ${school}
+const cfg = EXAMS[currentExam()];
 
-Subtotal: GHS ${ds.subtotal}
-Delivery Fee: GHS ${ds.delivery}
-Total: GHS ${ds.total}
+return `Dear ${school}
+Your registration for ${cfg.examName} is successful!
+Total Bill: GHS ${total}
+PAY VIA ${cfg.momoText}`;
+}
 
-Kindly pay through any this momo lines 
-0247448883 | 0248726958 | 0207732900 (Bacon Atsu Amengor / Best Brain Examinations Konsortium) 
+// Shares a school's invoice from History.
+//
+// Green button: the PDF is already on this device, so the File is built
+// synchronously and handed straight to navigator.share() — instant, and never
+// "preparing" again. Blue button: saves it once (server round-trip), goes
+// green, and every tap after that takes the fast path.
+//
+// September path: that backend has no getInvoicePdf endpoint, so there's
+// nothing to cache — just open the invoice's Drive link (its doGet serves
+// the PDF directly) alongside a text share.
+async function shareHistoryInvoice(d, btn){
 
-NB: Please use the name of your school as reference when making payments and send us a screenshot for confirmation.${invoiceLine}`;
+const message = buildMessage(d.school, d.totalBill);
+const submissionId = String(d.submissionId || "").trim();
+
+if(!examSupportsFileShare()){
+  if(d.invoiceUrl){
+    window.open(d.invoiceUrl, "_blank");
+  } else {
+    showToast("Invoice link isn't available yet for this record.");
+  }
+  window.open(`https://wa.me/?text=${encodeURIComponent(message)}`);
+  return;
+}
+
+const version = invoiceVersionOf(d);
+
+if(!submissionId){
+  window.open(`https://wa.me/?text=${encodeURIComponent(message)}`);
+  return;
+}
+
+// FAST PATH — nothing awaited, so the share sheet opens with the PDF attached.
+const cached = getCachedInvoiceFile(submissionId, version);
+if(cached && navigator.canShare && navigator.canShare({ files: [cached] })){
+  navigator.share({ files: [cached], text: message })
+    .catch(() => window.open(`https://wa.me/?text=${encodeURIComponent(message)}`));
+  return;
+}
+
+// SLOW PATH — runs at most once per invoice (or once more after an edit).
+if(btn){ btn.disabled = true; btn.textContent = "Saving invoice..."; }
+
+let file = await loadCachedInvoice(submissionId, version);
+if(!file) file = await fetchAndCacheInvoice(submissionId, d.school, version);
+
+if(btn) btn.disabled = false;
+
+if(!file){
+  if(btn) btn.textContent = "Save Invoice for Sharing";
+  showToast("Invoice isn't ready yet — it's still being generated. Try again in a moment.");
+  warmInvoiceCache(submissionId, d.school, version);
+  return;
+}
+
+if(btn) setShareBtnReady(btn);
+
+if(navigator.canShare && navigator.canShare({ files: [file] })){
+  try{
+    await navigator.share({ files: [file], text: message });
+  }catch(err){
+    showToast("Invoice saved to this device — tap the green button to share it.");
+  }
+  return;
+}
+
+showToast("This device can't attach files directly — opening WhatsApp with the bill details instead.");
+window.open(`https://wa.me/?text=${encodeURIComponent(message)}`);
 }
 
 document.addEventListener("focusin", function(e){
@@ -1645,9 +2451,23 @@ showToast("Download failed");
 
 }
 
-
+// BOOTSTRAP — pre-select whichever exam was last used (nice for reps who
+// consistently work one exam) and, if a session is still valid from a
+// prior page load with this same tab, make sure API_URL/banner reflect it.
+(function initExamState(){
+  const examSel = document.getElementById("examSelect");
+  if(examSel) examSel.value = currentExam();
+  API_URL = EXAMS[currentExam()].apiUrl;
+})();
 
 </script>
 
+<div id="balanceOverrideModal" class="balance-modal-overlay" style="display:none;">
+  <div class="balance-modal-box">
+    <div class="balance-modal-icon">⚠</div>
+    <div id="balanceModalBody" class="balance-modal-body"></div>
+    <button id="balanceModalOkBtn" class="balance-modal-ok-btn">OK, I Understand</button>
+  </div>
+</div>
 </body>
 </html>
