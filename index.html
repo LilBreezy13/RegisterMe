@@ -1,510 +1,275 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
 <title>Registration Portal</title>
 
 <style>
-
-*{
-box-sizing:border-box;
+:root{
+  --navy:#0d1b66; --navy2:#1c2e96; --ink:#1b2233; --muted:#6b7385;
+  --canvas:#f3f5fb; --surface:#fff; --line:#e1e6f0; --tint:#eef1fb;
+  --green:#1e9e5a; --greenbg:#e5f6ec; --amber:#b45f06; --amberbg:#fff4e5;
+  --red:#c62828; --redbg:#fdecea; --blue:#2a4bd7; --bluebg:#eaf0ff;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --bar:56px;
 }
-
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--canvas);-webkit-text-size-adjust:100%}
+html,body{width:100%;overflow-x:hidden}
+html.noscroll,html.noscroll body{overflow:hidden}
 body{
-font-family:Arial,Helvetica,sans-serif;
-background:linear-gradient(135deg,#e8edf5,#dfe6f2);
-margin:0;
-padding:15px;
-overflow-x:hidden;
+  margin:0;min-height:100vh;min-height:100dvh;background:var(--canvas);color:var(--ink);line-height:1.4;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
 }
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer}
+a{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid rgba(13,27,102,.35);outline-offset:2px}
 
-html,body{
-width:100%;
-overflow-x:hidden;
-}
-
-.card{
-background:white;
-width:100%;
-max-width:420px;
-margin:auto;
-padding:16px;
-border-radius:12px;
-box-shadow:0 8px 25px rgba(0,0,0,0.08);
-}
-
-h4{
-text-align:center;
-margin-bottom:15px;
-color:#0d1b66;
-}
-
-#formArea{
-background:#f9fafc;
-padding:14px;
-border-radius:10px;
-width:100%;
-}
-
+/* ---------- form controls ---------- */
 input,select{
-width:100%;
-padding:11px;
-margin:6px 0;
-border-radius:7px;
-border:1px solid #d7dce5;
-font-size:16px;
-/* font-size:16px; */
-line-height:1.4;
-display:block;
+  width:100%;display:block;margin:0;padding:0 14px;height:50px;
+  border:1px solid #d6dbe8;border-radius:12px;background:#fff;color:var(--ink);
+  font:inherit;font-size:16px;-webkit-appearance:none;appearance:none;
+}
+input::placeholder{color:#9aa1b5}
+select{
+  padding-right:40px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7385' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:16px;
+}
+select:disabled{background-color:#f4f6fb;color:var(--muted);opacity:1}
+input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,27,102,.12)}
+.fl{display:block;margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#5d6580}
+.field{margin-bottom:16px}
+
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;margin:0;padding:0 16px;
+  border:1px solid transparent;border-radius:12px;background:var(--navy);color:#fff;font-size:15px;font-weight:700;
+  transition:background .15s,transform .1s;
+}
+.btn:active{transform:scale(.99);background:var(--navy2)}
+.btn-ghost{background:#fff;color:var(--navy);border-color:#cfd6ea}
+.btn-ghost:active{background:var(--tint)}
+.btn-danger{background:#d31005}
+.btn-danger:active{background:#b50e04}
+.btn:disabled{background:#9aa1b5;border-color:transparent;color:#fff;cursor:not-allowed;transform:none}
+@media (hover:hover){
+  .btn:hover{background:var(--navy2)}
+  .btn-ghost:hover{background:var(--tint)}
+  .btn-danger:hover{background:#b50e04}
+  .btn:disabled:hover{background:#9aa1b5}
 }
 
-button{
-width:100%;
-padding:12px;
-background:#0d1b66;
-color:white;
-border:none;
-border-radius:8px;
-margin-top:10px;
-cursor:pointer;
-font-size:14px;
+/* ---------- login ---------- */
+#loginBox{
+  width:calc(100% - 32px);max-width:420px;margin:calc(24px + var(--sat)) auto 24px;padding:22px 18px 20px;
+  background:var(--surface);border:1px solid var(--line);border-radius:18px;
+  box-shadow:0 1px 2px rgba(20,30,70,.04),0 8px 24px rgba(20,30,70,.06);
+}
+#loginBox h4{text-align:center;margin:0 0 14px;font-size:22px;font-weight:800;color:var(--navy)}
+#loginBox input,#loginBox select{margin:8px 0}
+
+/* ---------- app bar ---------- */
+.appbar{
+  position:fixed;top:0;left:0;right:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line);
+  padding:var(--sat) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));
+}
+.appbar-in{height:var(--bar);max-width:560px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{flex:1;min-width:0;text-align:center;font-size:15px;font-weight:800;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{
+  flex:none;width:44px;height:44px;display:grid;place-items:center;margin:0;padding:0;
+  border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--navy);
+}
+.icon-btn.plain{border-color:transparent}
+.icon-btn:active{background:var(--tint)}
+.icon-btn svg,.dr-item svg,.lm-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- page ---------- */
+.page{
+  max-width:560px;margin:0 auto;
+  padding:calc(var(--bar) + var(--sat) + 20px) max(16px,env(safe-area-inset-right)) calc(36px + var(--sab)) max(16px,env(safe-area-inset-left));
+}
+.pg-title{margin:0;font-size:24px;line-height:1.2;font-weight:800;letter-spacing:-.2px}
+.pg-sub{margin:6px 0 16px;font-size:14px;color:var(--muted)}
+.panel{
+  background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;
+  box-shadow:0 1px 2px rgba(20,30,70,.04),0 8px 24px rgba(20,30,70,.05);
 }
 
-button:hover{
-background:#1c2e96;
-}
-
-button:disabled{
-background:gray;
-cursor:not-allowed;
-}
-
-.school-autofill-wrap{
-position:relative;
-}
-
-.balance-modal-overlay{
-  position:fixed;
-  top:0; left:0; right:0; bottom:0;
-  background:rgba(0,0,0,0.5);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-  padding:20px;
-  box-sizing:border-box;
-}
-
-.balance-modal-box{
-  background:white;
-  border-radius:12px;
-  width:100%;
-  max-width:340px;
-  max-height:80vh;
-  overflow-y:auto;
-  padding:24px 20px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.3);
-  text-align:center;
-  font-family:'Century Gothic', sans-serif;
-}
-
-.balance-modal-icon{
-  font-size:36px;
-  color:#cc0000;
-  margin-bottom:8px;
-}
-
-.balance-modal-body{
-  font-size:14px;
-  color:#333;
-  line-height:1.5;
-  margin-bottom:18px;
-}
-
-.balance-modal-ok-btn{
-  background:#cc0000;
-  color:white;
-  border:none;
-  border-radius:8px;
-  padding:12px 24px;
-  font-size:14px;
-  font-weight:700;
-  cursor:pointer;
-  width:100%;
-}
-
-.balance-modal-ok-btn:active{
-  opacity:0.85;
-}
-
-.school-suggest-box{
-position:absolute;
-left:0;
-right:0;
-top:100%;
-margin-top:-4px;
-background:white;
-border:1px solid #d7dce5;
-border-radius:0 0 7px 7px;
-box-shadow:0 8px 20px rgba(0,0,0,0.1);
-z-index:20;
-max-height:220px;
-overflow-y:auto;
-}
-
-.school-suggest-item{
-padding:10px 11px;
-cursor:pointer;
-border-top:1px solid #eef0f5;
-font-size:14px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:8px;
-}
-
-.school-suggest-item:first-child{
-border-top:none;
-}
-
-.school-suggest-item:hover,
-.school-suggest-item:active{
-background:#f0f3fb;
-}
-
-.school-suggest-item .ss-name{
-flex:1;
-min-width:0;
-}
-
-.school-suggest-item .ss-name b{
-display:block;
-color:#0d1b66;
-overflow:hidden;
-text-overflow:ellipsis;
-white-space:nowrap;
-}
-
-.school-suggest-item small{
-display:block;
-color:#6b7280;
-margin-top:2px;
-}
-
-.school-suggest-item .ss-id{
-flex-shrink:0;
-font-size:11px;
-line-height:1;
-color:#4b5568;
-background:#eef1f8;
-border:1px solid #d7dce5;
-padding:3px 6px;
-border-radius:4px;
-white-space:nowrap;
-font-weight:600;
-}
-.summary{
-background:#f5f7fb;
-padding:15px;
-border-radius:10px;
-margin-top:15px;
-font-size:14px;
-}
-
-.summary div{
-margin-top:6px;
-}
-
-.shareBtns{
-margin-top:12px;
-display:flex;
-gap:10px;
-}
-
-.whatsapp{background:#25D366;}
-.sms{background:#0d1b66;}
-
-#historyBox{
-display:none;
-margin-top:18px;
-text-align:center;
-}
-
-#historyList{
-padding:0;
-margin:0;
-list-style:none;
-max-height:300px;
-overflow-y:auto;
-}
-
-.history-item{
-background:#f1f3f8;
-padding:14px;
-border-radius:10px;
-margin-bottom:10px;
-cursor:pointer;
-text-align:center;
-transition:.2s;
-}
-
-.history-item:hover{
-background:#e7ebf5;
-}
-
-.history-item b{
-display:block;
-font-size:15px;
-color:#0d1b66;
-}
-
-.history-item span{
-font-size:13px;
-color:#555;
-}
-
-.history-controls{
-display:flex;
-flex-direction:column;
-gap:8px;
-margin-bottom:12px;
-}
-
-.history-search{
-width:100%;
-padding:10px 12px;
-border-radius:8px;
-border:1px solid #d7dce5;
-font-size:16px;
-background:white;
-}
-
-.history-filters{
-display:flex;
-gap:8px;
-}
-
-.filter-chip{
-flex:1;
-padding:8px;
-border-radius:8px;
-border:1px solid #d7dce5;
-background:#f5f7fb;
-color:#555;
-font-size:12px;
-font-weight:bold;
-cursor:pointer;
-text-align:center;
-transition:.2s;
-}
-
-.filter-chip.active{
-background:#0d1b66;
-color:white;
-border-color:#0d1b66;
-}
-
-.history-empty{
-text-align:center;
-color:#777;
-padding:20px;
-font-size:13px;
-list-style:none;
-}
-
-
-.history-time{
-font-size:11px;
-color:#777;
-margin-top:3px;
-}
-
-.history-share-btn{
-margin-top:10px;
-width:100%;
-padding:9px;
-border:none;
-border-radius:8px;
-background:#1c7ed6;
-color:white;
-font-size:13px;
-font-weight:bold;
-cursor:pointer;
-transition:background .2s ease;
-}
-
-/* Blue = invoice not saved on this device yet. Green = saved and ready to
-   share instantly. The button never sits on "preparing" again. */
-.history-share-btn.pending{
-background:#1c7ed6;
-}
-
-.history-share-btn.ready{
-background:#25D366;
-}
-
-.history-share-btn:disabled{
-opacity:.6;
-cursor:default;
-}
-
-.history-share-btn:active{
-opacity:.85;
-}
-#classArea{
-max-height:250px;
-overflow-y:auto;
-width:100%;
-}
-
-#classArea input{
-width:100%;
-}
-
-#toast{
-position:fixed;
-bottom:30px;
-left:50%;
-transform:translateX(-50%);
-background:#0d1b66;
-color:white;
-padding:12px 20px;
-border-radius:8px;
-opacity:0;
-transition:.3s;
-}
-
-#toast.show{
-opacity:1;
-}
-
-.footer{
-text-align:center;
-margin-top:15px;
-font-size:11px;
-color:#666;
-}
-
-.lang-row{
-display:flex;
-gap:6px;
-align-items:center;
-}
-
-.lang-add{
-width:34px;
-height:34px;
-border-radius:6px;
-padding:0;
-font-size:18px;
-background:#0d1b66;
-color:white;
-border:none;
-cursor:pointer;
-}
-
-#selectedLanguages{
-display:flex;
-flex-wrap:wrap;
-gap:5px;
-margin-top:6px;
-}
-
-.lang-chip{
-background:#eef1fb;
-padding:5px 8px;
-border-radius:6px;
-font-size:12px;
-display:flex;
-align-items:center;
-gap:5px;
-}
-
-.lang-chip span{
-cursor:pointer;
-font-weight:bold;
-}
-
-.lang-inputs{
-display:flex;
-gap:6px;
-margin-top:6px;
-}
-
-.lang-inputs input{
-flex:1;
-}
-
-
-a{
--webkit-tap-highlight-color: transparent;
-}
-.input-group{
-position:relative;
-margin:10px 0;
-}
-
-.input-group input{
-width:100%;
-padding:14px 10px;
-border:1px solid #d7dce5;
-border-radius:7px;
-font-size:16px;
-outline:none;
-background:white;
-}
-
-.input-group label{
-position:absolute;
-left:10px;
-top:12px;
-color:#777;
-font-size:14px;
-background:white;
-padding:0 4px;
-transition:0.2s;
-pointer-events:none;
-}
-
-/* FLOAT EFFECT */
-.input-group input:focus + label,
-.input-group input:not(:placeholder-shown) + label{
-top:-7px;
-font-size:11px;
-color:#0d1b66;
-}
-
+/* "Working in ..." bar */
 .exam-banner{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:8px;
-flex-wrap:wrap;
-font-size:12px;
-color:#333;
-background:#eef1fb;
-border:1px solid #d7dce5;
-border-radius:8px;
-padding:8px 10px;
-margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 18px;padding:13px 14px;
+  background:var(--tint);border:1px solid #dfe3f5;border-radius:12px;font-size:14px;color:#3a4460;
 }
+.exam-banner b{color:var(--navy);text-align:right}
+.exam-banner.exam-SEPT{background:var(--amberbg);border-color:#f0c987}
+.exam-banner.exam-SEPT b{color:var(--amber)}
 
-.exam-banner.exam-SEPT{
-background:#fff4e5;
-border-color:#f0c987;
+/* school autofill */
+.school-autofill-wrap{position:relative}
+.sw-anchor{position:relative}
+.school-suggest-box{
+  position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;max-height:240px;overflow-y:auto;overscroll-behavior:contain;
+  background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(20,30,70,.16);
 }
-
-.exam-switch-btn{
-width:auto;
-margin:0;
-padding:6px 10px;
-font-size:11px;
-background:#0d1b66;
-border-radius:6px;
+.school-suggest-item{
+  padding:12px 14px;min-height:48px;cursor:pointer;border-top:1px solid #eef0f5;font-size:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
 }
+.school-suggest-item:first-child{border-top:none}
+.school-suggest-item:active{background:#f0f3fb}
+@media (hover:hover){.school-suggest-item:hover{background:#f0f3fb}}
+.school-suggest-item .ss-name{flex:1;min-width:0}
+.school-suggest-item .ss-name b{display:block;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.school-suggest-item small{display:block;color:var(--muted);margin-top:2px}
+.school-suggest-item .ss-id{
+  flex-shrink:0;font-size:11px;line-height:1;color:#4b5568;background:#eef1f8;border:1px solid #d7dce5;
+  padding:4px 7px;border-radius:6px;white-space:nowrap;font-weight:600;
+}
+.bal-flag{display:none;margin-top:8px;padding:9px 12px;background:var(--redbg);color:var(--red);border-radius:10px;font-size:13px;font-weight:700}
 
-.exam-banner.exam-SEPT .exam-switch-btn{
-background:#b45f06;
+/* languages */
+.lang-row{display:flex;gap:10px;align-items:center}
+.lang-row select{flex:1;min-width:0}
+.lang-add{
+  flex:none;width:50px;height:50px;margin:0;padding:0;border:0;border-radius:12px;
+  background:var(--navy);color:#fff;font-size:26px;line-height:1;font-weight:400;
+}
+.lang-add:active{background:var(--navy2)}
+#selectedLanguages{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#selectedLanguages:empty{display:none}
+.lang-chip{
+  display:inline-flex;align-items:center;gap:8px;padding:5px 6px 5px 12px;background:var(--tint);color:var(--navy);
+  border:1px solid #dfe3f5;border-radius:999px;font-size:13px;font-weight:600;
+}
+.lang-chip span{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff;cursor:pointer;font-size:17px;line-height:1}
+.lang-inputs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.lang-inputs input{flex:1 1 130px;min-width:0}
+
+.actions{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:22px}
+
+/* bill summary */
+.summary{
+  margin-top:16px;padding:16px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--green);
+  border-radius:16px;font-size:14px;
+}
+.summary h3{margin:0 0 6px;font-size:16px}
+.summary div{margin-top:6px}
+.summary hr{border:0;border-top:1px dashed #cfd5e4;margin:10px 0}
+.shareBtns{margin-top:14px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+@media (min-width:420px){.shareBtns{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.whatsapp{background:#128c4a}
+.whatsapp:active{background:#0e7439}
+@media (hover:hover){.whatsapp:hover{background:#0e7439}}
+.sms{background:var(--navy)}
+
+/* ---------- history ---------- */
+.search-wrap{position:relative}
+.search-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:#9aa1b5;fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
+.search-wrap input{padding-left:42px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:#eceff7;border-radius:12px}
+.filter-chip{
+  min-height:42px;margin:0;padding:0 8px;border:0;border-radius:9px;background:transparent;color:#5d6580;font-size:14px;font-weight:700;
+}
+.filter-chip.active{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(20,30,70,.16)}
+.h-count{margin:16px 2px 10px;font-size:13px;font-weight:600;color:var(--muted)}
+#historyList{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.history-item{
+  padding:14px 14px 12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;cursor:pointer;
+  box-shadow:0 1px 2px rgba(20,30,70,.04),0 6px 18px rgba(20,30,70,.04);
+}
+.history-item:active{background:#fafbff}
+.h-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.h-name{min-width:0;font-size:15px;font-weight:800;overflow-wrap:anywhere}
+.h-amt{flex:none;font-size:15px;font-weight:800;color:var(--navy);white-space:nowrap}
+.h-sub{margin-top:2px;align-items:center}
+.h-loc{min-width:0;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-edit{flex:none;padding:6px 0 6px 12px;font-size:14px;font-weight:700;color:var(--navy)}
+.h-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-block;max-width:100%;padding:3px 10px;border-radius:999px;background:var(--tint);color:#38456f;font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip-new{background:var(--greenbg);color:var(--green)}
+.chip-edited{background:var(--bluebg);color:var(--blue)}
+.chip-id{font-weight:600}
+.h-meta{margin-top:8px;font-size:12px;color:var(--muted)}
+.history-empty{
+  padding:28px 14px;text-align:center;color:var(--muted);font-size:14px;list-style:none;
+  background:var(--surface);border:1px dashed #cfd5e4;border-radius:16px;
+}
+.history-empty a{color:var(--navy);font-weight:700}
+.history-share-btn{
+  display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin:12px 0 0;padding:0 14px;
+  border:0;border-radius:12px;color:#fff;font-size:14px;font-weight:700;transition:background .2s ease;
+}
+/* Blue = invoice not saved on this device yet. Green = saved and ready to share instantly. */
+.history-share-btn.pending{background:#1c7ed6}
+.history-share-btn.ready{background:#12904a}
+.history-share-btn:disabled{opacity:.6;cursor:default}
+.history-share-btn:active{opacity:.85}
+
+/* ---------- drawer ---------- */
+.scrim{
+  position:fixed;inset:0;z-index:40;background:rgba(10,16,45,.5);opacity:0;visibility:hidden;touch-action:none;
+  transition:opacity .25s,visibility 0s .25s;
+}
+.scrim.on{opacity:1;visibility:visible;transition:opacity .25s}
+.drawer{
+  position:fixed;top:0;bottom:0;left:0;z-index:50;width:min(84vw,320px);display:flex;flex-direction:column;overflow-y:auto;
+  background:var(--surface);box-shadow:8px 0 30px rgba(10,16,45,.25);padding-bottom:var(--sab);
+  transform:translateX(-104%);visibility:hidden;transition:transform .26s cubic-bezier(.2,.8,.2,1),visibility 0s .26s;
+}
+.drawer.on{transform:none;visibility:visible;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+.dr-head{padding:calc(18px + var(--sat)) 14px 18px 18px;background:linear-gradient(145deg,#0d1b66,#25379a);color:#fff}
+.dr-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dr-title{font-size:18px;font-weight:800}
+.dr-head .icon-btn{width:40px;height:40px;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#fff}
+.dr-user{margin-top:6px;font-size:13px;opacity:.85}
+.dr-exam{display:inline-block;margin-top:12px;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px;font-weight:700}
+.dr-nav{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:10px}
+.dr-item{
+  display:flex;align-items:center;gap:14px;width:100%;min-height:54px;margin:0;padding:0 14px;border:0;border-radius:12px;
+  background:transparent;color:var(--ink);font-size:16px;font-weight:600;text-align:left;text-decoration:none;
+}
+.dr-item svg{flex:none;color:#5d6580}
+.dr-item:active{background:var(--tint)}
+.dr-item.active{background:var(--tint);color:var(--navy)}
+.dr-item.active svg{color:var(--navy)}
+.dr-foot{margin-top:auto;padding:16px;font-size:12px;color:var(--muted);text-align:center}
+
+/* ---------- logout modal ---------- */
+.lm-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,16,45,.55)}
+.lm-overlay.on{display:flex}
+.lm-box{width:100%;max-width:340px;padding:24px 20px 18px;text-align:center;background:#fff;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.lm-icon{display:grid;place-items:center;width:52px;height:52px;margin:0 auto 12px;border-radius:50%;background:var(--redbg);color:#d31005}
+.lm-box h3{margin:0 0 6px;font-size:18px}
+.lm-box p{margin:0;font-size:14px;color:var(--muted)}
+.lm-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+
+/* balance warning modal (existing) */
+.balance-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.balance-modal-box{
+  background:#fff;border-radius:20px;width:100%;max-width:340px;max-height:80vh;overflow-y:auto;padding:24px 20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:center;font-family:inherit;
+}
+.balance-modal-icon{font-size:36px;color:#cc0000;margin-bottom:8px}
+.balance-modal-body{font-size:14px;color:#333;line-height:1.5;margin-bottom:18px}
+.balance-modal-ok-btn{
+  background:#cc0000;color:#fff;border:none;border-radius:12px;min-height:48px;padding:0 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;
+}
+.balance-modal-ok-btn:active{opacity:.85}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed;left:50%;bottom:calc(24px + var(--sab));transform:translateX(-50%);z-index:10000;
+  width:max-content;max-width:calc(100% - 32px);padding:12px 18px;background:#1b2233;color:#fff;border-radius:12px;
+  font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:.3s;
+}
+#toast.show{opacity:1}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
 </style>
 </head>
@@ -539,28 +304,87 @@ Sign into  September or October Mock. Any exams selected is what you will be reg
   </small>
 
 
-<button id="loginBtn" onclick="login()">Login</button>
+<button id="loginBtn" class="btn" onclick="login()">Login</button>
 </div>
 
-<div class="card" id="appBox" style="display:none">
+<div id="appBox" style="display:none">
+
+<!-- ===== top bar: menu on the left, logout on the right ===== -->
+<header class="appbar">
+  <div class="appbar-in">
+    <button type="button" class="icon-btn plain" id="menuBtn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div class="brand">Registration Portal</div>
+    <button type="button" class="icon-btn" onclick="askLogout()" aria-label="Log out or switch exam" title="Log out">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ===== menu drawer ===== -->
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Menu" aria-hidden="true">
+  <div class="dr-head">
+    <div class="dr-top">
+      <div class="dr-title">Registration Portal</div>
+      <button type="button" class="icon-btn" onclick="closeDrawer()" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="dr-user">Signed in as <b id="drRep">—</b></div>
+    <div class="dr-exam exam-label-mirror"></div>
+  </div>
+
+  <nav class="dr-nav" aria-label="Main">
+    <button type="button" class="dr-item active" data-view="home" onclick="navTo('home')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>
+      <span>New registration</span>
+    </button>
+    <button type="button" class="dr-item" data-view="history" onclick="navTo('history')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+      <span>History</span>
+    </button>
+    <a class="dr-item" href="account.html" onclick="return leaveTo()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      <span>Account</span>
+    </a>
+    <a class="dr-item" href="download.html" onclick="return leaveTo()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+      <span>Download report</span>
+    </a>
+  </nav>
+
+  <div class="dr-foot">Registration Portal • Designed by Nick</div>
+</aside>
+
+<main class="page">
+
+<!-- ================= HOME: registration form ================= -->
+<section id="viewHome">
+
+<h1 id="formHeader" class="pg-title">Register new school</h1>
+<p id="formSub" class="pg-sub">Fill in the school's details, then submit the enrollment.</p>
+
+<div id="formArea" class="panel">
 
 <div id="examBanner" class="exam-banner">
-  Working in: <b id="examBannerLabel"></b>
-  <button type="button" class="exam-switch-btn" onclick="logoutAndSwitchExam()">Logout / Switch Exam</button>
+  <span>Working in</span><b id="examBannerLabel"></b>
 </div>
-
-<h4 id="formHeader">Register New School</h4>
-
-<div id="formArea">
 
 <!-- BASIC INFO -->
 
-<div class="school-autofill-wrap">
-<input id="schoolName" placeholder="School Name" autocomplete="off" oninput="onSchoolNameInput()" onfocus="onSchoolNameInput()">
+<div class="field school-autofill-wrap">
+<label class="fl" for="schoolName">School name</label>
+<div class="sw-anchor">
+<input id="schoolName" placeholder="Type to search or enter a school" autocomplete="off" oninput="onSchoolNameInput()" onfocus="onSchoolNameInput()">
 <div id="schoolSuggestBox" class="school-suggest-box" style="display:none"></div>
-<div id="schoolBalanceFlag" style="display:none;color:#cc0000;font-size:13px;font-weight:700;margin-top:4px;text-align:center;font-family:'Century Gothic','Poppins',sans-serif;letter-spacing:0.2px;"></div>
+</div>
+<div id="schoolBalanceFlag" class="bal-flag" style="display:none"></div>
 </div>
 
+<div class="field">
+<label class="fl" for="region">Region</label>
 <select id="region">
 <option value="">Select Region</option>
 <option>Greater Accra</option>
@@ -580,30 +404,45 @@ Sign into  September or October Mock. Any exams selected is what you will be reg
 <option>North East</option>
 <option>Savannah</option>
 </select>
+</div>
 
-<input id="location" placeholder="Location">
+<div class="field">
+<label class="fl" for="location">Location</label>
+<input id="location" placeholder="Town or area">
+</div>
 
-<input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="0509967235" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
+<div class="field">
+<label class="fl" for="phone">Phone number</label>
+<input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="e.g. 0509967235" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
+</div>
 
 
 <!-- EXAM FLOW — Mock only, no exam-type picker needed anymore -->
 
+<div class="field">
+<label class="fl" for="packageOption">Package option</label>
 <select id="packageOption">
 <option value="">Select Package Option</option>
 <option value="A">Option A - Premium Pack</option>
 <option value="B">Option B - General Pack </option>
 <option value="C">Option C - Open Pack</option>
 </select>
+</div>
 
 <!-- CLASS INPUT — Mock only has Basic 9 -->
 <div id="classArea"></div>
 
 <!-- French is forced to "Yes" for Mock and not user-editable -->
+<div class="field">
+<label class="fl" for="french">French</label>
 <select id="french" disabled>
 <option value="Yes" selected>French: Yes</option>
 </select>
+</div>
 
 <!-- LANGUAGES LAST -->
+<div class="field" style="margin-bottom:0">
+<label class="fl" for="language">Ghanaian language</label>
 <div class="lang-row">
 <select id="language">
 <option value="">Select Ghanaian Language</option>
@@ -621,73 +460,76 @@ Sign into  September or October Mock. Any exams selected is what you will be reg
 <option value="NO">NO Ghanaian Language</option>
 </select>
 
-<button type="button" class="lang-add" onclick="addLanguage()">+</button>
+<button type="button" class="lang-add" onclick="addLanguage()" aria-label="Add language">+</button>
 </div>
 
 <div id="selectedLanguages"></div>
 <div id="languageEnrollments"></div>
+</div>
 
 
 <!-- ACTION BUTTONS -->
-<button id="submitBtn" onclick="submitEnrollment()">Submit Enrollment</button>
-<button onclick="reloadForm()">Reload / New Enrollment</button>
-<button onclick="toggleHistory()">Show / Hide History</button>
+<div class="actions">
+<button id="submitBtn" class="btn" onclick="submitEnrollment()">Submit Enrollment</button>
+<button class="btn btn-ghost" onclick="reloadForm()">Reload / New Enrollment</button>
+</div>
 
 </div>
 
-<button id="addNewBtn" onclick="reloadForm()" style="display:none">Add New School</button>
+<button id="addNewBtn" class="btn" onclick="reloadForm()" style="display:none;margin-top:12px">Add New School</button>
 
 <div id="summarySection" class="summary" style="display:none">
 <h3>Bill Summary</h3>
 <div id="summaryText"></div>
 
 <div class="shareBtns">
-<button class="whatsapp" onclick="shareWhatsApp()">Send Bill via WhatsApp</button>
-<button class="sms" onclick="shareSMS()">Send Bill via SMS</button>
+<button class="btn whatsapp" onclick="shareWhatsApp()">Send Bill via WhatsApp</button>
+<button class="btn sms" onclick="shareSMS()">Send Bill via SMS</button>
 </div>
 </div>
 
-<div id="historyBox">
-<h3>Submitted Schools</h3>
+</section>
 
-<div class="history-controls">
-<input type="text" id="historySearch" class="history-search" placeholder="Search by school or location..." oninput="filterHistory()">
+<!-- ================= HISTORY ================= -->
+<section id="historyBox" hidden>
+<h1 class="pg-title">History</h1>
+<p class="pg-sub">Schools you've submitted for <b class="exam-label-mirror"></b>. Tap one to edit it.</p>
 
-<div class="history-filters">
+<div class="panel">
+<div class="field">
+<label class="fl" for="historySearch">Search</label>
+<div class="search-wrap">
+<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+<input type="text" id="historySearch" placeholder="School or location" autocomplete="off" enterkeyhint="search" oninput="filterHistory()">
+</div>
+</div>
+<div style="margin:0">
+<span class="fl">Show</span>
+<div class="seg">
 <button type="button" class="filter-chip active" id="filterAllBtn" onclick="setHistoryFilter('all')">All</button>
-<button type="button" class="filter-chip" id="filterEditedBtn" onclick="setHistoryFilter('edited')">Edited Only</button>
+<button type="button" class="filter-chip" id="filterEditedBtn" onclick="setHistoryFilter('edited')">Edited only</button>
+</div>
 </div>
 </div>
 
+<div class="h-count" id="historyCount" aria-live="polite"></div>
 <ul id="historyList"></ul>
+</section>
+
+</main>
 </div>
 
-<!-- DOWNLOAD PANEL -->
-<div style="text-align:center; margin-top:15px;">
-  <a href="./download.html"
-     style="
-     font-size:16px;
-     padding:8px 12px;
-     background:#d31005;
-     color:white;
-     border-radius:8px;
-     display:inline-block;
-     text-decoration:none;
-     user-select:none;
-     -webkit-user-select:none;
-     -webkit-touch-callout:none;
-     touch-action:manipulation;
-     ">
-      Download Report
-  </a>
-</div>
-
- <!-- FOOTER FOOTER -->
-
-<div class="footer">
-Registration Portal • Designed by Nick 
-</div>
-
+<!-- ===== logout confirmation ===== -->
+<div id="logoutModal" class="lm-overlay" role="dialog" aria-modal="true" aria-labelledby="lmTitle" onclick="if(event.target===this)closeLogoutModal()">
+  <div class="lm-box">
+    <div class="lm-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></div>
+    <h3 id="lmTitle">Log out?</h3>
+    <p>You'll go back to the login screen, where you can also switch between the September and October mock.</p>
+    <div class="lm-actions">
+      <button type="button" class="btn btn-ghost" id="lmNo" onclick="closeLogoutModal()">No, stay</button>
+      <button type="button" class="btn btn-danger" onclick="doLogout()">Yes, log out</button>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -744,6 +586,7 @@ function applyExamBanner(){
   const cfg = EXAMS[exam];
   const label = document.getElementById("examBannerLabel");
   if(label) label.textContent = cfg.label;
+  document.querySelectorAll(".exam-label-mirror").forEach(function(n){ n.textContent = cfg.label; });
   const banner = document.getElementById("examBanner");
   if(banner) banner.className = "exam-banner exam-" + exam;
 }
@@ -753,11 +596,13 @@ function logoutAndSwitchExam(){
   localStorage.removeItem("token");
   localStorage.removeItem("repId");
   localStorage.removeItem("role");
+  if(window.AccountCore) AccountCore.clear();
   historyData = [];
   document.getElementById("appBox").style.display = "none";
   document.getElementById("loginBox").style.display = "block";
   const sel = document.getElementById("examSelect");
   if(sel) sel.value = currentExam();
+  resetAppChrome();
 }
 
 
@@ -806,8 +651,10 @@ function forceRelogin(message){
   localStorage.removeItem("token");
   localStorage.removeItem("repId");
   localStorage.removeItem("role");
+  if(window.AccountCore) AccountCore.clear();
   document.getElementById("appBox").style.display = "none";
   document.getElementById("loginBox").style.display = "block";
+  resetAppChrome();
   showToast(message || "Session expired — please log in again");
 }
 
@@ -1224,10 +1071,12 @@ async function login(){
     localStorage.setItem("role", data.role);
 
     loadRepSchoolHistory();
+    if(window.AccountCore) AccountCore.prefetch();
 
     loginBox.style.display="none";
     appBox.style.display="block";
     applyExamBanner();
+    enterApp("home");
 
     reloadForm(true);
     loadHistory();
@@ -1254,14 +1103,14 @@ function toggleClasses(){
 let area = document.getElementById("classArea");
 
 area.innerHTML = `
-<div class="input-group">
+<div class="field">
+<label class="fl" for="b9">Basic 9 enrollment</label>
 <input type="tel"
 inputmode="numeric"
 pattern="[0-9]*"
 id="b9"
-placeholder=" "
+placeholder="Number of students"
 >
-<label>Basic 9 Enrollment</label>
 </div>
 `;
 
@@ -1742,12 +1591,26 @@ renderHistoryList();
 
 // Renders historyData through the current search term + filter mode.
 // Called on every keystroke/filter click — no server round-trip needed.
+function setHistoryCount(txt){
+  const c = document.getElementById("historyCount");
+  if(c) c.textContent = txt || "";
+}
+
+function fmtStamp(t){
+  const dt = new Date(t);
+  if(!t || isNaN(dt)) return "";
+  return dt.toLocaleString("en-GB", { day:"numeric", month:"short", year:"numeric", hour:"numeric", minute:"2-digit", hour12:true });
+}
+
+// Renders historyData through the current search term + filter mode.
+// Called on every keystroke/filter click — no server round-trip needed.
 function renderHistoryList(){
 
 let list = document.getElementById("historyList");
 list.innerHTML = "";
 
 if(!historyData.length){
+setHistoryCount("");
 list.innerHTML = "<li class='history-empty'>No records yet</li>";
 return;
 }
@@ -1769,30 +1632,40 @@ return true;
 });
 
 if(!filtered.length){
+setHistoryCount("");
 list.innerHTML = "<li class='history-empty'>No matching schools found</li>";
 return;
 }
+
+setHistoryCount(filtered.length === historyData.length
+  ? filtered.length + (filtered.length === 1 ? " school" : " schools")
+  : "Showing " + filtered.length + " of " + historyData.length);
+
 filtered.forEach((d, idx)=>{
 
 let li=document.createElement("li");
 li.className="history-item";
 li.onclick=function(){ editSchool(d); };
 
+const total = Number(d.totalBill);
+const totalTxt = (isFinite(total) && total > 0)
+  ? "GHS " + total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  : "";
+
 li.innerHTML = `
-<b>${escapeHtml(d.school)}</b>
-<span>${escapeHtml(d.location)}</span>
-<div class="history-time">
-${d.editedTime ? "✅EDITED" : "🟢 NEW"}
-<br>
-
- Submitted:
-${d.createdTime ? new Date(d.createdTime).toLocaleString() : ""}
-
-${d.editedTime ? `
-<br>Edited:
-${new Date(d.editedTime).toLocaleString()}
-` : ""}
+<div class="h-row">
+  <div class="h-name">${escapeHtml(d.school)}</div>
+  ${totalTxt ? `<div class="h-amt">${escapeHtml(totalTxt)}</div>` : ""}
 </div>
+<div class="h-row h-sub">
+  <div class="h-loc">${escapeHtml(d.location)}</div>
+  <span class="h-edit">Edit</span>
+</div>
+<div class="h-chips">
+  <span class="chip ${d.editedTime ? "chip-edited" : "chip-new"}">${d.editedTime ? "Edited" : "New"}</span>
+  ${d.schoolId ? `<span class="chip chip-id">${escapeHtml(d.schoolId)}</span>` : ""}
+</div>
+<div class="h-meta">Submitted ${escapeHtml(fmtStamp(d.createdTime))}${d.editedTime ? ` · Edited ${escapeHtml(fmtStamp(d.editedTime))}` : ""}</div>
 `;
 
 // The invoice is saved to this device once and then reused forever. The
@@ -1882,7 +1755,8 @@ window.confirmedSchoolName = String(data.school || "").trim().toUpperCase();
 
 window.currentSubmissionVersion = data.editedTime || data.createdTime || "";
 
-  document.getElementById("historyBox").style.display="none";
+  goHomeView();
+  setFormMode(true);
 
   // BASIC FIELDS
  document.getElementById("schoolName").value = data.school;
@@ -1937,22 +1811,11 @@ window.currentSubmissionVersion = data.editedTime || data.createdTime || "";
 
   window.scrollTo({top:0,behavior:"smooth"});
 }
-function toggleHistory(){
+// History is now its own view, opened from the menu (see openHistory in the app-shell block).
 
-/* HIDE SUMMARY */
-document.getElementById("summarySection").style.display="none";
-
-let box=document.getElementById("historyBox");
-let opening = box.style.display !== "block";
-
-box.style.display = opening ? "block" : "none";
-
-if(opening){
-document.getElementById("historySearch").value = "";
-setHistoryFilter("all"); // also re-renders the list
-}
-}
 function reloadForm(hideSummary = true){
+
+setFormMode(false);
 
 // Assign the ID for this NEW enrollment attempt right now, once.
 // submitEnrollment() will reuse it on every retry, so a dropped
@@ -2267,7 +2130,7 @@ if(btn) btn.disabled = false;
 
 if(!file){
   if(btn) btn.textContent = "Save Invoice for Sharing";
-  showToast("Invoice isn't ready yet — it's still being generated. Try again in a moment.");
+  showToast("Still generating Invoice. Try again in a moment.");
   warmInvoiceCache(submissionId, d.school, version);
   return;
 }
@@ -2278,12 +2141,12 @@ if(navigator.canShare && navigator.canShare({ files: [file] })){
   try{
     await navigator.share({ files: [file], text: message });
   }catch(err){
-    showToast("Invoice saved to this device — tap the green button to share it.");
+    showToast("Invoice saved to this device tap the green button to share it.");
   }
   return;
 }
 
-showToast("This device can't attach files directly — opening WhatsApp with the bill details instead.");
+showToast("This device can't attach files directly opening WhatsApp with the bill details instead.");
 window.open(`https://wa.me/?text=${encodeURIComponent(message)}`);
 }
 
@@ -2460,7 +2323,231 @@ showToast("Download failed");
   API_URL = EXAMS[currentExam()].apiUrl;
 })();
 
+/* =====================================================================
+   APP SHELL — menu drawer, Home/History views and the phone's back button.
+   UI only: none of this touches registration, history data, invoices or
+   any server call.
+
+   Phone-back model (History API). While signed in, the page's history is:
+
+       [ guard ] [ home ] [ history ]        <- History is only pushed
+                                                when the rep opens it
+
+   • Back from History  -> lands on "home"        -> just show Home
+   • Back from Home     -> lands on "guard"       -> ask "Log out?" and
+                           re-push "home" so the rep stays put
+   • Back with the menu / logout dialog / balance warning open -> that
+                           overlay takes the press first (never navigates)
+   • Account / Report are normal pages, so Back from them returns here.
+   ===================================================================== */
+let currentView = "home";   // "home" | "history"
+let appActive = false;      // true while the signed-in screen is showing
+
+function byId(id){ return document.getElementById(id); }
+
+function showView(name){
+  currentView = (name === "history") ? "history" : "home";
+  byId("viewHome").hidden   = currentView !== "home";
+  byId("historyBox").hidden = currentView !== "history";
+  document.querySelectorAll(".dr-item[data-view]").forEach(function(b){
+    b.classList.toggle("active", b.dataset.view === currentView);
+  });
+  window.scrollTo(0, 0);
+}
+
+function setFormMode(editing){
+  const h = byId("formHeader"), s = byId("formSub");
+  if(h) h.textContent = editing ? "Edit registration" : "Register new school";
+  if(s) s.textContent = editing
+    ? "Update the details below, then submit to save your changes."
+    : "Fill in the school's details, then submit the enrollment.";
+}
+
+/* ---------- drawer ---------- */
+function drawerOpen(){ return byId("drawer").classList.contains("on"); }
+
+function openDrawer(){
+  byId("drRep").textContent = localStorage.getItem("repId") || "—";
+  const d = byId("drawer");
+  d.classList.add("on");
+  d.setAttribute("aria-hidden", "false");
+  byId("scrim").classList.add("on");
+  byId("menuBtn").setAttribute("aria-expanded", "true");
+  document.documentElement.classList.add("noscroll");
+  setTimeout(function(){
+    const t = d.querySelector(".dr-item.active") || d.querySelector(".dr-item");
+    if(t && drawerOpen()) t.focus();
+  }, 60);
+}
+
+function closeDrawer(){
+  const d = byId("drawer");
+  if(!d) return;
+  d.classList.remove("on");
+  d.setAttribute("aria-hidden", "true");
+  byId("scrim").classList.remove("on");
+  byId("menuBtn").setAttribute("aria-expanded", "false");
+  document.documentElement.classList.remove("noscroll");
+}
+
+// swipe the menu to the left to close it
+(function(){
+  let x0 = null, y0 = null;
+  const d = byId("drawer");
+  d.addEventListener("touchstart", function(e){ x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive:true });
+  d.addEventListener("touchend", function(e){
+    if(x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = Math.abs(e.changedTouches[0].clientY - y0);
+    x0 = y0 = null;
+    if(dx < -60 && dy < 60) closeDrawer();
+  }, { passive:true });
+})();
+
+/* ---------- navigation ---------- */
+function pushView(name){
+  try{ history.pushState({ app:1, view:name }, ""); }catch(e){}
+}
+
+function navTo(name){
+  closeDrawer();
+  if(name === "history") openHistory(); else goHomeView();
+}
+
+function openHistory(){
+  byId("summarySection").style.display = "none";   // same as the old Show/Hide History
+  byId("historySearch").value = "";
+  setHistoryFilter("all");                         // also re-renders the list
+  if(currentView !== "history") pushView("history");
+  showView("history");
+}
+
+function goHomeView(){
+  if(currentView === "history"){
+    showView("home");
+    // pop the History entry so the phone's back button stays in step
+    try{ if(history.state && history.state.view === "history") history.back(); }catch(e){}
+  } else {
+    showView("home");
+  }
+}
+
+// Account / Report are separate pages: remember to restore the signed-in
+// screen when the rep comes back (phone back, or the page's own back arrow).
+function leaveTo(){
+  sessionStorage.setItem("bb_return", "1");
+  closeDrawer();
+  return true;
+}
+
+/* ---------- logout confirmation ---------- */
+function askLogout(){
+  closeDrawer();
+  byId("logoutModal").classList.add("on");
+  setTimeout(function(){ const n = byId("lmNo"); if(n) n.focus(); }, 30);
+}
+function closeLogoutModal(){ byId("logoutModal").classList.remove("on"); }
+function doLogout(){
+  closeLogoutModal();
+  logoutAndSwitchExam();          // unchanged original logout
+}
+
+/* ---------- sign-in / sign-out plumbing ---------- */
+function enterApp(preferred){
+  appActive = true;
+  const st = history.state;
+  if(st && st.app && (st.view === "home" || st.view === "history")){
+    // stack already built (signed out and back in, or restored from another page)
+    showView(preferred || st.view);
+  } else if(st && st.guard){
+    pushView("home");
+    showView("home");
+  } else {
+    try{
+      history.replaceState({ app:1, guard:1 }, "");
+      history.pushState({ app:1, view:"home" }, "");
+    }catch(e){}
+    showView("home");
+  }
+}
+
+function resetAppChrome(){
+  const wasHistory = (currentView === "history");
+  appActive = false;
+  closeDrawer();
+  closeLogoutModal();
+  showView("home");
+  // leave the browser history sitting on the "home" entry for the next sign-in
+  if(wasHistory){
+    try{ if(history.state && history.state.view === "history") history.back(); }catch(e){}
+  }
+}
+
+function overlayOpen(){
+  return drawerOpen()
+      || byId("logoutModal").classList.contains("on")
+      || byId("balanceOverrideModal").style.display === "flex";
+}
+
+window.addEventListener("popstate", function(e){
+  const st = e.state || history.state;
+
+  if(!appActive){
+    // signed out: a back press on the login screen should simply leave
+    if(st && st.guard){ try{ history.back(); }catch(_){} }
+    return;
+  }
+
+  // an open overlay takes the back press; put the page back where it was
+  if(overlayOpen()){
+    closeDrawer();
+    closeLogoutModal();      // (the balance warning stays until OK is tapped)
+    pushView(currentView);
+    return;
+  }
+
+  if(st && st.view === "history"){ showView("history"); return; }
+  if(st && st.view === "home"){ showView("home"); return; }
+
+  // landed on the guard entry: back was pressed on the Home screen
+  pushView("home");
+  showView("home");
+  askLogout();
+});
+
+document.addEventListener("keydown", function(e){
+  if(e.key !== "Escape") return;
+  if(byId("logoutModal").classList.contains("on")) closeLogoutModal();
+  else if(drawerOpen()) closeDrawer();
+});
+
+// coming back from another page via the phone's back gesture (page kept in memory)
+window.addEventListener("pageshow", function(e){
+  if(e.persisted) sessionStorage.removeItem("bb_return");
+});
+
+// ---- coming back from account.html / download.html without re-login ----
+(function restoreAfterAccount(){
+  if(sessionStorage.getItem("bb_return") !== "1") return;
+  sessionStorage.removeItem("bb_return");
+  if(!localStorage.getItem("token") || !localStorage.getItem("repId")) return;
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("appBox").style.display = "block";
+  applyExamBanner();
+  reloadForm(true);
+  enterApp();
+  loadHistory();
+  loadRepSchoolHistory();
+  if(window.AccountCore) AccountCore.prefetch();
+})();
+
+// keep the account data warm while the rep works on the form
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden && window.AccountCore && localStorage.getItem("token")) AccountCore.refresh(false);
+});
+
 </script>
+
+<script src="account-core.js"></script>
 
 <div id="balanceOverrideModal" class="balance-modal-overlay" style="display:none;">
   <div class="balance-modal-box">
