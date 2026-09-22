@@ -288,8 +288,8 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
 Sign into  September or October Mock. Any exams selected is what you will be registering for. 
 </small>
 
-<input id="repId" placeholder="Rep ID">
-<input id="repPin" type="password" placeholder="PIN">
+<input id="repId" placeholder="Rep ID" oninput="updateLoginBtnState()">
+<input id="repPin" type="password" placeholder="PIN" oninput="updateLoginBtnState()">
 
     <small style="
     display:block;
@@ -304,7 +304,7 @@ Sign into  September or October Mock. Any exams selected is what you will be reg
   </small>
 
 
-<button id="loginBtn" class="btn" onclick="login()">Login</button>
+<button id="loginBtn" class="btn" onclick="login()" disabled>Login</button>
 </div>
 
 <div id="appBox" style="display:none">
@@ -603,6 +603,7 @@ function logoutAndSwitchExam(){
   const sel = document.getElementById("examSelect");
   if(sel) sel.value = currentExam();
   resetAppChrome();
+  updateLoginBtnState();
 }
 
 
@@ -655,6 +656,7 @@ function forceRelogin(message){
   document.getElementById("appBox").style.display = "none";
   document.getElementById("loginBox").style.display = "block";
   resetAppChrome();
+  updateLoginBtnState();
   showToast(message || "Session expired — please log in again");
 }
 
@@ -1023,7 +1025,26 @@ document.addEventListener("click", function(e){
 
 
 
+function updateLoginBtnState(){
+  const rep = (document.getElementById("repId").value || "").trim();
+  const pin = (document.getElementById("repPin").value || "").trim();
+  const btn = document.getElementById("loginBtn");
+  if(btn) btn.disabled = !(rep && pin);
+}
+
 async function login(){
+
+  const rep=(document.getElementById("repId").value || "").trim();
+  const pin=(document.getElementById("repPin").value || "").trim();
+
+  // Validate BEFORE touching the button or the network. The button is
+  // already disabled while either field is empty (see updateLoginBtnState),
+  // this is just a safety net (e.g. autofill that didn't fire an input event).
+  if(!rep || !pin){
+    showToast("Please fill all fields");
+    updateLoginBtnState();
+    return;
+  }
 
   const btn=document.getElementById("loginBtn");
   btn.disabled=true;
@@ -1042,16 +1063,17 @@ async function login(){
   
   setActiveExam(examChoice);
 
-  const rep=document.getElementById("repId").value;
-  const pin=document.getElementById("repPin").value;
-
   let data = null;
 
-  // Try up to twice with a hard 15s timeout each — most "connection
-  // errors" are one dropped packet, not the device actually being offline.
+  // Try up to twice with a 20s timeout each — most "connection errors" are
+  // one dropped packet, not the device actually being offline, and the
+  // backend can genuinely take a few seconds under load. (See the doPost
+  // lazy-sheet-loading fix on the backend — that's what actually removes
+  // most of this delay; this timeout bump just gives real slow moments
+  // enough room to finish instead of reporting a false failure.)
   for(let attempt = 1; attempt <= 2 && !data; attempt++){
     try{
-      data = await postJSON({ action:"login", repId:rep, pin:pin }, 15000);
+      data = await postJSON({ action:"login", repId:rep, pin:pin }, 20000);
     }catch(err){
       if(attempt === 1) await new Promise(r => setTimeout(r, 800));
     }
@@ -1306,7 +1328,9 @@ async function submitEnrollment() {
     let data = null;
 
     try {
-        data = await postJSON(submitPayload, 25000); // hard cap — never hang forever
+        data = await postJSON(submitPayload, 45000); // hard cap — never hang forever, but give the
+                                                       // backend's lock-wait + duplicate scan + balance
+                                                       // lookup real room before we assume it failed
     } catch (err) {
         // The write may well have already landed on the server even though
         // this request timed out/dropped. Before telling the rep it failed
@@ -1465,9 +1489,28 @@ async function submitEnrollment() {
           warmInvoiceCache(data.submissionId, school);
         }
 
+        // SHOW IN HISTORY IMMEDIATELY — don't make the rep wait on a network
+        // round trip (or a manual reload) to see the school they just saved.
+        upsertHistoryEntry({
+            submissionId: data.submissionId || submissionId,
+            repId: localStorage.getItem("repId"),
+            region: regionVal,
+            schoolId: data.schoolId || "",
+            school: school.toUpperCase(),
+            location: locationVal.toUpperCase(),
+            phone: phoneVal,
+            language: languageVal,
+            french: frenchVal,
+            packageOption: packageVal,
+            enrollments: { b9: enrollments.b9 },
+            totalBill: bill.total,
+            createdTime: new Date().toISOString(),
+            editedTime: data.isNew === false ? new Date().toISOString() : null
+        });
+
         // RESET FORM AFTER SUCCESS
         reloadForm(false);
-        loadHistory();
+        loadHistory(); // background reconcile with the authoritative server copy
 
         // data.smsSent / data.whatsappStatus are only present on a NEW
         // submission (null on an edit) — the backend fires SMS + tries
@@ -1494,6 +1537,23 @@ async function submitEnrollment() {
 }
 let historyData = [];          // cached full history from the server
 let historyFilterMode = 'all'; // 'all' | 'edited'
+
+// Instantly reflects a just-submitted/edited school in the History list
+// from data we already have on the client, so the rep sees it appear
+// immediately instead of waiting on the getHistory round trip. The normal
+// loadHistory() call right after this still runs in the background and
+// will silently correct/replace this with the authoritative server copy
+// (exact stored language code, exact timestamp, etc.) once it arrives.
+function upsertHistoryEntry(entry){
+  const idx = historyData.findIndex(h => h.submissionId === entry.submissionId);
+  if(idx !== -1){
+    historyData[idx] = Object.assign({}, historyData[idx], entry);
+  } else {
+    historyData.unshift(entry); // newest first, matching server order
+  }
+  saveHistoryToCache();
+  renderHistoryList();
+}
 let historyLoadRetries = 0;
 const HISTORY_MAX_RETRIES = 5;
 const HISTORY_CACHE_PREFIX = "history_cache_";
@@ -2073,11 +2133,12 @@ if(total === undefined){
 }
 
 const cfg = EXAMS[currentExam()];
-
 return `Dear ${school}
 Your registration for ${cfg.examName} is successful!
 Total Bill: GHS ${total}
-PAY VIA ${cfg.momoText}`;
+PAY VIA ${cfg.momoText}
+
+After payment, please send us the Transaction ID or use "${school}" as the payment reference, then call us to confirm.`;
 }
 
 // Shares a school's invoice from History.
@@ -2544,6 +2605,13 @@ window.addEventListener("pageshow", function(e){
 document.addEventListener("visibilitychange", function(){
   if(!document.hidden && window.AccountCore && localStorage.getItem("token")) AccountCore.refresh(false);
 });
+
+// Covers browser autofill, which can populate the Rep ID / PIN fields
+// without firing an "input" event — without this the Login button could
+// stay disabled even though both fields are actually filled.
+updateLoginBtnState();
+document.addEventListener("DOMContentLoaded", updateLoginBtnState);
+setTimeout(updateLoginBtnState, 500);
 
 </script>
 
