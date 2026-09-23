@@ -43,7 +43,28 @@ select{
 select:disabled{background-color:#f4f6fb;color:var(--muted);opacity:1}
 input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,27,102,.12)}
 .fl{display:block;margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#5d6580}
-.field{margin-bottom:16px}
+.field{margin-bottom:10px;position:relative}
+
+/* ---------- floating "legend" labels ----------
+   Label rests centered inside the box like a placeholder; on focus or
+   once the field has a value it floats up onto the border line with a
+   white backing, like a fieldset legend. Applies to every .field except
+   ones explicitly opted out with .field-static (e.g. the language row,
+   which has more than one control side-by-side). */
+.field:not(.field-static) .fl{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  margin:0;padding:0 5px;background:transparent;
+  font-size:15px;font-weight:400;letter-spacing:normal;text-transform:none;color:#9aa1b5;
+  pointer-events:none;transition:top .12s ease,transform .12s ease,font-size .12s ease,color .12s ease,font-weight .12s ease;
+  z-index:2;max-width:calc(100% - 46px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.field:not(.field-static).has-value .fl,
+.field:not(.field-static):focus-within .fl{
+  top:0;transform:translateY(-50%) scale(.82);transform-origin:left center;
+  font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--navy);background:#fff;
+}
+.field-static{margin-bottom:10px}
 
 .btn{
   display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;margin:0;padding:0 16px;
@@ -374,10 +395,19 @@ Sign into  September or October Mock. Any exams selected is what you will be reg
 
 <!-- BASIC INFO -->
 
+<div class="field">
+<label class="fl" for="confirmExam">Exam</label>
+<select id="confirmExam" required>
+<option value="" selected></option>
+<option value="OCT">October Mock (Beta)</option>
+<option value="SEPT">September Mock (Alpha)</option>
+</select>
+</div>
+
 <div class="field school-autofill-wrap">
 <label class="fl" for="schoolName">School name</label>
 <div class="sw-anchor">
-<input id="schoolName" placeholder="Type to search or enter a school" autocomplete="off" oninput="onSchoolNameInput()" onfocus="onSchoolNameInput()">
+<input id="schoolName" autocomplete="off" oninput="onSchoolNameInput()" onfocus="onSchoolNameInput()">
 <div id="schoolSuggestBox" class="school-suggest-box" style="display:none"></div>
 </div>
 <div id="schoolBalanceFlag" class="bal-flag" style="display:none"></div>
@@ -386,7 +416,7 @@ Sign into  September or October Mock. Any exams selected is what you will be reg
 <div class="field">
 <label class="fl" for="region">Region</label>
 <select id="region">
-<option value="">Select Region</option>
+<option value="" selected></option>
 <option>Greater Accra</option>
 <option>Ashanti</option>
 <option>Eastern</option>
@@ -408,12 +438,12 @@ Sign into  September or October Mock. Any exams selected is what you will be reg
 
 <div class="field">
 <label class="fl" for="location">Location</label>
-<input id="location" placeholder="Town or area">
+<input id="location">
 </div>
 
 <div class="field">
 <label class="fl" for="phone">Phone number</label>
-<input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="e.g. 0509967235" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
+<input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
 </div>
 
 
@@ -422,7 +452,7 @@ Sign into  September or October Mock. Any exams selected is what you will be reg
 <div class="field">
 <label class="fl" for="packageOption">Package option</label>
 <select id="packageOption">
-<option value="">Select Package Option</option>
+<option value="" selected></option>
 <option value="A">Option A - Premium Pack</option>
 <option value="B">Option B - General Pack </option>
 <option value="C">Option C - Open Pack</option>
@@ -441,7 +471,7 @@ Sign into  September or October Mock. Any exams selected is what you will be reg
 </div>
 
 <!-- LANGUAGES LAST -->
-<div class="field" style="margin-bottom:0">
+<div class="field field-static" style="margin-bottom:0">
 <label class="fl" for="language">Ghanaian language</label>
 <div class="lang-row">
 <select id="language">
@@ -642,6 +672,27 @@ let t=document.getElementById("toast");
 t.innerText=msg;
 t.classList.add("show");
 setTimeout(()=>t.classList.remove("show"),2000);
+}
+
+// Keeps the floating "legend" labels in sync with whatever's actually in
+// the field — covers normal typing/selecting via the delegated listeners
+// below, and also programmatic value changes (autofill, editSchool,
+// reloadForm) via the light interval fallback started in enterApp().
+function refreshFloatLabels(){
+  document.querySelectorAll("#formArea .field").forEach(function(f){
+    var el = f.querySelector("input,select");
+    if(!el) return;
+    var has = el.value != null && String(el.value).trim() !== "";
+    f.classList.toggle("has-value", has);
+  });
+}
+document.addEventListener("input", function(e){ if(e.target && e.target.closest && e.target.closest("#formArea .field")) refreshFloatLabels(); }, true);
+document.addEventListener("change", function(e){ if(e.target && e.target.closest && e.target.closest("#formArea .field")) refreshFloatLabels(); }, true);
+let floatLabelInterval = null;
+function startFloatLabelWatch(){
+  refreshFloatLabels();
+  if(floatLabelInterval) clearInterval(floatLabelInterval);
+  floatLabelInterval = setInterval(refreshFloatLabels, 400);
 }
 
 // Called whenever the backend tells us the token is no longer valid
@@ -1102,6 +1153,7 @@ async function login(){
 
     reloadForm(true);
     loadHistory();
+    startFloatLabelWatch();
 
     showToast("Login successful  " + examCfg.label);
 
@@ -1131,7 +1183,7 @@ area.innerHTML = `
 inputmode="numeric"
 pattern="[0-9]*"
 id="b9"
-placeholder="Number of students"
+placeholder=""
 >
 </div>
 `;
@@ -1172,6 +1224,22 @@ async function submitEnrollment() {
     const role = localStorage.getItem("role");
 
     // VALIDATIONS
+    // Confirm-exam check comes first — cheapest to catch, and the whole
+    // point is to stop a mis-pointed submission before anything else runs.
+    const confirmExamVal = document.getElementById("confirmExam").value;
+    if (!confirmExamVal){
+        showToast("Select the exam this registration is for");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
+    if (confirmExamVal !== currentExam()){
+        showToast("You're logged in as " + EXAMS[currentExam()].label + " check the exam");
+        btn.disabled = false;
+        btn.innerText = "Submit Enrollment";
+        return;
+    }
+
     if (!school || !locationVal || !phoneVal){
         showToast("Fill all required fields");
         btn.disabled = false;
@@ -1819,6 +1887,7 @@ window.currentSubmissionVersion = data.editedTime || data.createdTime || "";
   setFormMode(true);
 
   // BASIC FIELDS
+  document.getElementById("confirmExam").value = currentExam();
  document.getElementById("schoolName").value = data.school;
   setSelectValueCI(document.getElementById("region"), data.region);
   document.getElementById("location").value = data.location;
@@ -1911,6 +1980,8 @@ toggleClasses();
 
 // FRENCH IS ALWAYS "YES" FOR MOCK — not user editable
 document.getElementById("french").value = "Yes";
+
+if(typeof refreshFloatLabels === "function") refreshFloatLabels();
 }
 
 /* ================= INVOICE CACHE (saved on device) =================
@@ -2599,6 +2670,7 @@ window.addEventListener("pageshow", function(e){
   loadHistory();
   loadRepSchoolHistory();
   if(window.AccountCore) AccountCore.prefetch();
+  startFloatLabelWatch();
 })();
 
 // keep the account data warm while the rep works on the form
