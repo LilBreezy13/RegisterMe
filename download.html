@@ -218,19 +218,19 @@
     <script>
      
       const EXAMS = {
+        NOV: {
+          label: "November Mock (Gamma)",
+          apiUrl: "https://script.google.com/macros/s/AKfycbwiTYnsLwMLou90m7cppvZpeAHrm-QHyPO7BKqanmvR4FDfn-_guCI-ihRZzBrmys0-/exec"
+        },
         OCT: {
           label: "October Mock (Beta)",
           apiUrl: "https://script.google.com/macros/s/AKfycbyl1OJhZSEfk96nsFrqZ-WjGVhb8ZIWjVggr-wiIamoQ_Bt8WQUSF12zw9NxNL6uJPFmw/exec"
-        },
-        SEPT: {
-          label: "September Mock (Alpha)",
-          apiUrl: "https://script.google.com/macros/s/AKfycbyPRyb0tKH18K5CsPDlpYl1reuEGsEYTHcyeAebugtjTquvCDuKMAjbdRFkBxKtut5Y1g/exec"
         }
       };
 
       function currentExam(){
         const e = localStorage.getItem("activeExam");
-        return EXAMS[e] ? e : "OCT";
+        return EXAMS[e] ? e : "NOV";
       }
 
       const activeExamCfg = EXAMS[currentExam()];
@@ -323,7 +323,7 @@
                 const blob = new Blob([byteArray], { type: "application/pdf" });
                 const blobUrl = URL.createObjectURL(blob);
 
-                const examTag = currentExam(); // "OCT" or "SEPT"
+                const examTag = currentExam(); // "NOV" or "OCT"
                 const filename = res.filename
                   ? res.filename.replace(/\.pdf$/i, "") + "_" + examTag + ".pdf"
                   : "Report_" + examTag + ".pdf";

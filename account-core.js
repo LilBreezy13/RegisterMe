@@ -4,13 +4,13 @@
   'use strict';
 
   var EXAMS = {
-    OCT:  { label: 'October Mock (Beta)',   api: 'https://script.google.com/macros/s/AKfycbyl1OJhZSEfk96nsFrqZ-WjGVhb8ZIWjVggr-wiIamoQ_Bt8WQUSF12zw9NxNL6uJPFmw/exec' },
-    SEPT: { label: 'September Mock (Alpha)', api: 'https://script.google.com/macros/s/AKfycbyPRyb0tKH18K5CsPDlpYl1reuEGsEYTHcyeAebugtjTquvCDuKMAjbdRFkBxKtut5Y1g/exec' }
+    NOV:  { label: 'November Mock (Gamma)', api: 'https://script.google.com/macros/s/AKfycbwiTYnsLwMLou90m7cppvZpeAHrm-QHyPO7BKqanmvR4FDfn-_guCI-ihRZzBrmys0-/exec' },
+    OCT:  { label: 'October Mock (Beta)',   api: 'https://script.google.com/macros/s/AKfycbyl1OJhZSEfk96nsFrqZ-WjGVhb8ZIWjVggr-wiIamoQ_Bt8WQUSF12zw9NxNL6uJPFmw/exec' }
   };
 
   function ctx() {
     var ex = localStorage.getItem('activeExam');
-    if (!EXAMS[ex]) ex = 'OCT';
+    if (!EXAMS[ex]) ex = 'NOV';
     return { exam: ex, cfg: EXAMS[ex], token: localStorage.getItem('token') || '', rep: localStorage.getItem('repId') || '' };
   }
   function cKey(c) { return 'bb_acct_' + c.exam + '_' + c.rep; }
