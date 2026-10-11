@@ -1,11 +1,11 @@
-/* account-core.js — shared by index.html (silent prefetch) and account.html (UI).
-   Holds NO secrets. All authorization happens server-side from the session token. */
+
 (function () {
   'use strict';
 
   var EXAMS = {
     NOV:  { label: 'November Mock (Gamma)', api: 'https://script.google.com/macros/s/AKfycbwiTYnsLwMLou90m7cppvZpeAHrm-QHyPO7BKqanmvR4FDfn-_guCI-ihRZzBrmys0-/exec' },
-    OCT:  { label: 'October Mock (Beta)',   api: 'https://script.google.com/macros/s/AKfycbyl1OJhZSEfk96nsFrqZ-WjGVhb8ZIWjVggr-wiIamoQ_Bt8WQUSF12zw9NxNL6uJPFmw/exec' }
+    OCT:  { label: 'October Mock (Beta)',   api: 'https://script.google.com/macros/s/AKfycbyl1OJhZSEfk96nsFrqZ-WjGVhb8ZIWjVggr-wiIamoQ_Bt8WQUSF12zw9NxNL6uJPFmw/exec' },
+    DEC:  { label: 'December End of Term (EOT/Empowerment)', api: 'https://script.google.com/macros/s/AKfycbw5-nyeMYfxVwCg8djB3Ac0yHS4TAcFWF_ckfxJY10evTC4GyllwoIqD-4vxGEyobbFgw/exec' }
   };
 
   function ctx() {

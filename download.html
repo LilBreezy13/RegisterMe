@@ -204,8 +204,7 @@
     <div id="toast"></div>
 
     <script>
-      // Back = the real browser back (so the phone's back stack never loops).
-      // The flag tells the registration page to restore the signed-in screen.
+    
       document.getElementById("backBtn").addEventListener("click", () => {
         sessionStorage.setItem("bb_return", "1");
         let same = false;
@@ -225,6 +224,10 @@
         OCT: {
           label: "October Mock (Beta)",
           apiUrl: "https://script.google.com/macros/s/AKfycbyl1OJhZSEfk96nsFrqZ-WjGVhb8ZIWjVggr-wiIamoQ_Bt8WQUSF12zw9NxNL6uJPFmw/exec"
+        },
+        DEC: {
+          label: "December End of Term (EOT/Empowerment)",
+          apiUrl: "https://script.google.com/macros/s/AKfycbw5-nyeMYfxVwCg8djB3Ac0yHS4TAcFWF_ckfxJY10evTC4GyllwoIqD-4vxGEyobbFgw/exec"
         }
       };
 

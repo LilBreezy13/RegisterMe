@@ -128,6 +128,14 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
 .exam-banner b{color:var(--navy);text-align:right}
 .exam-banner.exam-OCT{background:var(--amberbg);border-color:#f0c987}
 .exam-banner.exam-OCT b{color:var(--amber)}
+.exam-banner.exam-DEC{background:#e8f5ec;border-color:#a9d8b8}
+.exam-banner.exam-DEC b{color:#1b6b3a}
+
+/* December class groups */
+.cls-group{margin:0 0 14px;padding:12px 12px 2px;border:1px solid var(--line);border-radius:14px;background:#fafbff}
+.cls-group-title{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 12px;font-size:13px;font-weight:800;color:var(--navy);letter-spacing:.02em}
+.cls-group-title span{font-size:12px;font-weight:700;color:#1b6b3a;background:#e8f5ec;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.cls-total{margin:0 0 14px;padding:10px 12px;border-radius:12px;background:var(--tint);color:var(--navy);font-size:13px;font-weight:700}
 
 /* school autofill */
 .school-autofill-wrap{position:relative}
@@ -304,9 +312,10 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
 <select id="examSelect">
 <option value="NOV">November Mock (Gamma)</option>
 <option value="OCT">October Mock (Beta)</option>
+<option value="DEC">December End of Term (EOT/Empowerment)</option>
 </select>
 <small style="display:block;margin:2px 0 10px;color:#888;font-size:10px;text-align:center;">
-Pick the exam to start on. You are signed into both and can switch with the Exam box on the form. 
+Pick the exam to start on. You are signed into all exams and can switch with the Exam box on the form. 
 </small>
 
 <input id="repId" placeholder="Rep ID" oninput="updateLoginBtnState()">
@@ -400,6 +409,7 @@ Pick the exam to start on. You are signed into both and can switch with the Exam
 <select id="confirmExam" required onchange="switchActiveExam(this.value)">
 <option value="NOV" selected>November Mock (Gamma)</option>
 <option value="OCT">October Mock (Beta)</option>
+<option value="DEC">December End of Term (EOT/Empowerment)</option>
 </select>
 </div>
 
@@ -448,7 +458,7 @@ Pick the exam to start on. You are signed into both and can switch with the Exam
 
 <!-- EXAM FLOW — Mock only, no exam-type picker needed anymore -->
 
-<div class="field">
+<div class="field" id="packageField">
 <label class="fl" for="packageOption">Package option</label>
 <select id="packageOption">
 <option value="" selected></option>
@@ -473,7 +483,7 @@ Pick the exam to start on. You are signed into both and can switch with the Exam
 <div class="field field-static" style="margin-bottom:0">
 <label class="fl" for="language">Ghanaian language</label>
 <div class="lang-row">
-<select id="language">
+<select id="language" onchange="if(isDecember()) addLanguage()">
 <option value="">Select Ghanaian Language</option>
 <option>Asante Twi</option>
 <option>Akuapem Twi</option>
@@ -489,7 +499,7 @@ Pick the exam to start on. You are signed into both and can switch with the Exam
 <option value="NO">NO Ghanaian Language</option>
 </select>
 
-<button type="button" class="lang-add" onclick="addLanguage()" aria-label="Add language">+</button>
+<button type="button" class="lang-add" id="langAddBtn" onclick="addLanguage()" aria-label="Add language">+</button>
 </div>
 
 <div id="selectedLanguages"></div>
@@ -553,7 +563,7 @@ Pick the exam to start on. You are signed into both and can switch with the Exam
   <div class="lm-box">
     <div class="lm-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></div>
     <h3 id="lmTitle">Log out?</h3>
-    <p>You'll go back to the login screen, where you can also switch between the November and October mock.</p>
+    <p>You'll go back to the login screen, where you can also switch between the November, October and December exams.</p>
     <div class="lm-actions">
       <button type="button" class="btn btn-ghost" id="lmNo" onclick="closeLogoutModal()">No, stay</button>
       <button type="button" class="btn btn-danger" onclick="doLogout()">Yes, log out</button>
@@ -586,17 +596,24 @@ const EXAMS = {
   }
 };
 
+// December = END OF TERM. Paste the December web-app /exec URL below.
+EXAMS.DEC = {
+  label: "December End of Term (EOT/Empowerment)",
+  apiUrl: "https://script.google.com/macros/s/AKfycbw5-nyeMYfxVwCg8djB3Ac0yHS4TAcFWF_ckfxJY10evTC4GyllwoIqD-4vxGEyobbFgw/exec",
+  examName: "EOT/EMPOWERMENT Mock",          // must match EXAM_NAME in the December Code.gs
+  momoText: "0247448883 | 0248726958 | 0207732900 (Telecel)",
+  supportsFileShare: true
+};
+
 const DEFAULT_EXAM = "NOV";               // November is the default exam
-const EXAM_KEYS = ["NOV", "OCT"];         // exams the rep is signed into at login
+const EXAM_KEYS = ["NOV", "OCT", "DEC"];  // exams the rep is signed into at login
 
 function currentExam(){
   const e = localStorage.getItem("activeExam");
   return EXAMS[e] ? e : DEFAULT_EXAM;
 }
 
-// Each exam backend issues its own session token. "token" (used by submit,
-// history, autofill, account, downloads) always belongs to the ACTIVE exam;
-// token_NOV / token_OCT keep both so the rep can switch exam without re-login.
+
 function tokenFor(exam){
   return localStorage.getItem("token_" + exam) || "";
 }
@@ -634,6 +651,7 @@ function applyExamBanner(){
   document.querySelectorAll(".exam-label-mirror").forEach(function(n){ n.textContent = cfg.label; });
   const banner = document.getElementById("examBanner");
   if(banner) banner.className = "exam-banner exam-" + exam;
+  applyExamFormMode();
 }
 
 
@@ -668,12 +686,10 @@ async function postJSONTo(url, payload, timeoutMs = 20000){
     clearTimeout(timer);
   }
 }
-// The only language values the form is allowed to submit — must match
-// the <option> list in the #language <select> exactly, plus "NO".
+
 const VALID_LANGUAGES = ["Asante Twi","Akuapem Twi","Ga","Ewe","Fante","Dagbani","Dagaare","Dangme","Gonja","Kasem","Nzema","NO"];
 
-// The backend shortens these two to codes when saving to the sheet
-// (see mapLanguage() in Code.gs) — reverse that when reading history back.
+
 const LANGUAGE_ABBREVIATION_MAP = { "AST":"Asante Twi", "AKT":"Akuapem Twi" };
 
 function isKnownLanguage(lang){
@@ -690,10 +706,7 @@ t.classList.add("show");
 setTimeout(()=>t.classList.remove("show"), ms || 2000);
 }
 
-// Keeps the floating "legend" labels in sync with whatever's actually in
-// the field — covers normal typing/selecting via the delegated listeners
-// below, and also programmatic value changes (autofill, editSchool,
-// reloadForm) via the light interval fallback started in enterApp().
+
 function refreshFloatLabels(){
   document.querySelectorAll("#formArea .field").forEach(function(f){
     var el = f.querySelector("input,select");
@@ -711,10 +724,7 @@ function startFloatLabelWatch(){
   floatLabelInterval = setInterval(refreshFloatLabels, 400);
 }
 
-// Called whenever the backend tells us the token is no longer valid
-// (6hr cache expiry, or the rep logged in elsewhere). Wipes local
-// session state and drops back to the login screen with a clear
-// explanation, instead of leaving the rep stuck retrying forever.
+
 function forceRelogin(message){
   clearAllTokens();
   if(window.AccountCore) AccountCore.clear();
@@ -768,10 +778,7 @@ async function loadRepSchoolHistory(attempt = 1){
     window.repSchoolHistoryLoading = false;
 
   }catch(err){
-    // A cold backend or a network blip used to leave autofill silently dead
-    // until the rep logged out and back in. Retry quietly in the background
-    // instead — repSchoolHistoryLoading stays true across the retries, so
-    // onSchoolNameInput's poll keeps waiting rather than giving up.
+ 
     if(attempt < 3){
       setTimeout(() => loadRepSchoolHistory(attempt + 1), attempt * 700);
     } else {
@@ -1203,7 +1210,102 @@ async function login(){
 
 
 
+
+function isDecember(){ return currentExam() === "DEC"; }
+
+// Package option is NOT used in December (Basic 9 is always GHS 25).
+function applyExamFormMode(){
+  const pf = document.getElementById("packageField");
+  if(pf) pf.style.display = isDecember() ? "none" : "";
+  // December: one Ghanaian language only, picked straight from the list (no "+" button)
+  const lb = document.getElementById("langAddBtn");
+  if(lb) lb.style.display = isDecember() ? "none" : "";
+}
+
+const DEC_DELIVERY_FEE = 20;
+// [key, label, short]  — keys are the input ids AND the enrollments keys sent to the backend
+const DEC_TIERS = [
+  { id:"PRE",   label:"Pre-School",    price:9,  classes:[["ns","Nursery ","NS"],["kg1","KG 1","KG1"],["kg2","KG 2","KG2"]] },
+  { id:"LOWER", label:"Lower Primary", price:10, classes:[["b1","Basic 1","B1"],["b2","Basic 2","B2"],["b3","Basic 3","B3"]] },
+  { id:"UPPER", label:"Upper Primary", price:11, classes:[["b4","Basic 4","B4"],["b5","Basic 5","B5"],["b6","Basic 6","B6"]] },
+  { id:"JHS",   label:"Basic 7 & 8",   price:17, classes:[["b7","Basic 7","B7"],["b8","Basic 8","B8"]] },
+  { id:"B9",    label:"Basic 9",       price:25, classes:[["b9","Basic 9","B9"]] }
+];
+
+function updateDecClassTotal(){
+  const box = document.getElementById("decClassTotal");
+  if(!box) return;
+  let cands = 0, sub = 0;
+  DEC_TIERS.forEach(function(t){
+    t.classes.forEach(function(c){
+      const el = document.getElementById(c[0]);
+      const n = el ? (Number(el.value) || 0) : 0;
+      cands += n; sub += n * t.price;
+    });
+  });
+  box.textContent = cands > 0
+    ? "Total candidates: " + cands + "  ·  Subtotal: GHS " + sub
+    : "Total candidates: 0";
+}
+
+function buildDecClassFields(){
+  const area = document.getElementById("classArea");
+  area.innerHTML = DEC_TIERS.map(function(t){
+    const fields = t.classes.map(function(c){
+      return '<div class="field"><label class="fl" for="' + c[0] + '">' + c[1] + '</label>' +
+        '<input type="tel" inputmode="numeric" pattern="[0-9]*" id="' + c[0] + '" placeholder="" ' +
+        'oninput="this.value=this.value.replace(/[^0-9]/g,\'\').slice(0,5);updateDecClassTotal()"></div>';
+    }).join("");
+    return '<div class="cls-group"><div class="cls-group-title">' + t.label +
+      '<span>GHS ' + t.price + ' per candidate</span></div>' + fields + '</div>';
+  }).join("") + '<div id="decClassTotal" class="cls-total"></div>';
+  updateDecClassTotal();
+}
+
+// One line per price group: qty x price = amount
+function calculateBillDec(e){
+  const lines = [];
+  let subtotal = 0, candidates = 0;
+  DEC_TIERS.forEach(function(t){
+    let qty = 0; const parts = [];
+    t.classes.forEach(function(c){
+      const n = Number(e[c[0]]) || 0;
+      if(n > 0){ qty += n; parts.push(c[2] + " " + n); }
+    });
+    if(qty > 0){
+      lines.push({ label:t.label, detail:(t.classes.length > 1 ? parts.join(", ") : ""),
+                   qty:qty, price:t.price, amount:qty * t.price });
+      subtotal += qty * t.price; candidates += qty;
+    }
+  });
+  const delivery = DEC_DELIVERY_FEE;
+  return { exam:"DEC", lines:lines, candidates:candidates, subtotal:subtotal, delivery:delivery, total:subtotal + delivery };
+}
+
+function buildDecSummaryHTML(school, bill){
+  const rows = bill.lines.map(function(l){
+    return '<div style="margin:6px 0"><b>' + l.label + '</b>' +
+      '<br>' + l.qty + ' × GHS ' + l.price + ' = <b>GHS ' + l.amount + '</b></div>';
+  }).join("");
+  return '<div><b>School:</b> ' + school + '</div><hr>' + rows +
+    '<hr><div>Total Candidates: ' + bill.candidates + '</div>' +
+    '<div>Subtotal: GHS ' + bill.subtotal + '</div>' +
+    '<div>Delivery Fee: GHS ' + bill.delivery + '</div><hr>' +
+    '<b>Total: GHS ' + bill.total + '</b>';
+}
+
+// Picks the right form for the active exam
 function toggleClasses(){
+  if(isDecember()){ buildDecClassFields(); return; }
+  toggleClassesLegacy_();
+}
+
+function calculateBill(e){
+  return isDecember() ? calculateBillDec(e) : calculateBillLegacy_(e);
+}
+
+// ---- original November / October (Basic 9 only) form ----
+function toggleClassesLegacy_(){
 
 let area = document.getElementById("classArea");
 
@@ -1221,7 +1323,7 @@ placeholder=""
 
 }
 
-function calculateBill(e){
+function calculateBillLegacy_(e){
 
 const PACKAGE_PRICES = { A: 100, B: 25, C: 15 }; // GHS per student
 const option   = document.getElementById("packageOption").value;
@@ -1233,8 +1335,7 @@ const total    = subtotal + delivery;
 
 return { option, price, b9, subtotal, delivery, total };
 }
-// The Exam box on the form: switches the whole portal (submit, history,
-// autofill, account, banner) to November or October without logging in again.
+
 function switchActiveExam(exam){
   const box = document.getElementById("confirmExam");
   if(!EXAMS[exam] || exam === currentExam()) return;
@@ -1250,6 +1351,9 @@ function switchActiveExam(exam){
   setActiveExam(exam);                    // also repoints API_URL
   localStorage.setItem("token", t);
   applyExamBanner();
+
+  applyExamFormMode();
+  reloadForm(true);                       // fresh form for the newly chosen exam (December has different class boxes)
 
   window.repSchoolHistory = null;         // autofill list belongs to the exam
   window.repSchoolHistoryLoading = false;
@@ -1280,13 +1384,11 @@ async function submitEnrollment() {
     const phoneVal = document.getElementById("phone").value.trim();
     const exam = "mock";
     const frenchVal = document.getElementById("french").value; // always "Yes" for Mock
-    const packageVal = document.getElementById("packageOption").value;
+    const packageVal = isDecember() ? "" : document.getElementById("packageOption").value;   // December has no package option
 
     const role = localStorage.getItem("role");
 
-    // VALIDATIONS
-    // Confirm-exam check comes first — cheapest to catch, and the whole
-    // point is to stop a mis-pointed submission before anything else runs.
+   
     const confirmExamVal = document.getElementById("confirmExam").value;
     if (!confirmExamVal){
         showToast("Select the exam this registration is for");
@@ -1324,7 +1426,7 @@ async function submitEnrollment() {
         return;
     }
 
-    if (!packageVal) {
+    if (!isDecember() && !packageVal) {
         showToast("Select Option A, B or C");
         btn.disabled = false;
         btn.innerText = "Submit Enrollment";
@@ -1338,8 +1440,9 @@ async function submitEnrollment() {
     });
 
     // NO ENROLLMENT ENTERED → BLOCK SUBMISSION
-    if (!enrollments.b9 || enrollments.b9 <= 0) {
-        showToast("Enter Basic 9 enrollment");
+    const enrolledTotal = Object.keys(enrollments).reduce(function(s, k){ return s + (Number(enrollments[k]) || 0); }, 0);
+    if (isDecember() ? enrolledTotal <= 0 : (!enrollments.b9 || enrollments.b9 <= 0)) {
+        showToast(isDecember() ? "Enter candidates for at least one class" : "Enter Basic 9 enrollment");
         btn.disabled = false;
         btn.innerText = "Submit Enrollment";
         return;
@@ -1373,8 +1476,7 @@ async function submitEnrollment() {
         languageVal = selectedLangs[0];
 
     } else {
-        // MORE THAN ONE LANGUAGE — each needs its own enrollment value,
-        // and they must add up to the total Basic 9 enrollment
+       
         captureLangValues();
 
         let totalLang = 0;
@@ -1394,8 +1496,8 @@ async function submitEnrollment() {
             langParts.push(`${lang}(${val})`);
         }
 
-        if (totalLang !== enrollments.b9) {
-            showToast(`Language enrollments must total ${enrollments.b9} (Basic 9 enrollment)`);
+        if (totalLang !== enrolledTotal) {
+            showToast(`Language enrollments must total ${enrolledTotal} (${isDecember() ? "total candidates" : "Basic 9 enrollment"})`);
             btn.disabled = false;
             btn.innerText = "Submit Enrollment";
             return;
@@ -1582,7 +1684,7 @@ async function submitEnrollment() {
         }
 
         // ONLY NOW SHOW SUMMARY
-        let summaryHTML = `
+        let summaryHTML = isDecember() ? buildDecSummaryHTML(school, bill) : `
         <div><b>School:</b> ${school}</div>
         <hr>
         <div>Basic 9 Enrollment: ${bill.b9}</div>
@@ -1631,7 +1733,7 @@ async function submitEnrollment() {
             language: languageVal,
             french: frenchVal,
             packageOption: packageVal,
-            enrollments: { b9: enrollments.b9 },
+            enrollments: Object.assign({}, enrollments),
             totalBill: bill.total,
             createdTime: new Date().toISOString(),
             editedTime: data.isNew === false ? new Date().toISOString() : null
@@ -1967,7 +2069,8 @@ window.currentSubmissionVersion = data.editedTime || data.createdTime || "";
       // RESTORE ENROLLMENT
       for (let k in data.enrollments) {
         let el = document.getElementById(k);
-        if (el) el.value = data.enrollments[k];
+        if (el) el.value = Number(data.enrollments[k]) ? data.enrollments[k] : "";
+        if (isDecember()) updateDecClassTotal();
       }
 
       // RESTORE LANGUAGES — handles "NO", a single language, or multiple
@@ -2364,6 +2467,15 @@ let val = select.value;
 
 if(!val) return;
 
+// December: only ONE Ghanaian language per school - the new pick replaces the old one
+if(isDecember()){
+    selectedLangs = [val];
+    langValues = {};
+    select.value = "";
+    renderLanguages();
+    return;
+}
+
 //  prevent duplicates
 if(selectedLangs.includes(val)) return;
 
@@ -2396,6 +2508,12 @@ function captureLangValues(){
 }
 
 function renderLanguages(){
+
+    // December keeps a single language, even if an older record / autofill had several
+    if(isDecember() && selectedLangs.length > 1){
+        selectedLangs = [selectedLangs[0]];
+        langValues = {};
+    }
 
     captureLangValues();
 
