@@ -130,6 +130,8 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
 .exam-banner.exam-OCT b{color:var(--amber)}
 .exam-banner.exam-DEC{background:#e8f5ec;border-color:#a9d8b8}
 .exam-banner.exam-DEC b{color:#1b6b3a}
+.exam-banner.exam-SEPT{background:#f1ecfa;border-color:#cdbdf0}
+.exam-banner.exam-SEPT b{color:#5b3a9e}
 
 /* December class groups */
 .cls-group{margin:0 0 14px;padding:12px 12px 2px;border:1px solid var(--line);border-radius:14px;background:#fafbff}
@@ -311,8 +313,9 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
 <label style="display:block;font-size:12px;color:#555;margin:4px 0 2px;">Which exam are you registering for?</label>
 <select id="examSelect">
 <option value="NOV">November Mock (Gamma)</option>
-<option value="OCT">October Mock (Beta)</option>
 <option value="DEC">December End of Term (EOT/Empowerment)</option>
+<option value="OCT">October Mock (Beta)</option>
+<option value="SEPT">September Mock (Alpha)</option>
 </select>
 <small style="display:block;margin:2px 0 10px;color:#888;font-size:10px;text-align:center;">
 Pick the exam to start on. You are signed into all exams and can switch with the Exam box on the form. 
@@ -408,8 +411,9 @@ Pick the exam to start on. You are signed into all exams and can switch with the
 <label class="fl" for="confirmExam">Exam</label>
 <select id="confirmExam" required onchange="switchActiveExam(this.value)">
 <option value="NOV" selected>November Mock (Gamma)</option>
-<option value="OCT">October Mock (Beta)</option>
 <option value="DEC">December End of Term (EOT/Empowerment)</option>
+<option value="OCT">October Mock (Beta)</option>
+<option value="SEPT">September Mock (Alpha)</option>
 </select>
 </div>
 
@@ -563,7 +567,7 @@ Pick the exam to start on. You are signed into all exams and can switch with the
   <div class="lm-box">
     <div class="lm-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></div>
     <h3 id="lmTitle">Log out?</h3>
-    <p>You'll go back to the login screen, where you can also switch between the November, October and December exams.</p>
+   <p>You'll go back to the login screen, where you can also switch between the November, December, October and September exams.</p>
     <div class="lm-actions">
       <button type="button" class="btn btn-ghost" id="lmNo" onclick="closeLogoutModal()">No, stay</button>
       <button type="button" class="btn btn-danger" onclick="doLogout()">Yes, log out</button>
@@ -605,8 +609,17 @@ EXAMS.DEC = {
   supportsFileShare: true
 };
 
-const DEFAULT_EXAM = "NOV";               // November is the default exam
-const EXAM_KEYS = ["NOV", "OCT", "DEC"];  // exams the rep is signed into at login
+// September = ALPHA MOCK. Its backend has no getInvoicePdf, so file-share stays off.
+EXAMS.SEPT = {
+  label: "September Mock (Alpha)",
+  apiUrl: "https://script.google.com/macros/s/AKfycbyPRyb0tKH18K5CsPDlpYl1reuEGsEYTHcyeAebugtjTquvCDuKMAjbdRFkBxKtut5Y1g/exec",
+  examName: "Alpha Mock",                    // must match EXAM_NAME in the September Code.gs
+  momoText: "0247448883 | 0248726958",
+  supportsFileShare: false
+};
+
+const DEFAULT_EXAM = "NOV";                        // November is the default exam
+const EXAM_KEYS = ["NOV", "DEC", "OCT", "SEPT"];   // exams the rep is signed into at login
 
 function currentExam(){
   const e = localStorage.getItem("activeExam");
