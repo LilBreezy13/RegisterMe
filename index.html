@@ -859,6 +859,11 @@ function onSchoolNameInput(){
     renderSchoolSuggestions(filtered);
 
 
+    if(isDecember()){
+      decReleaseSchoolLinkIfChanged();
+      return;
+    }
+
     const exact = filtered.find(s => String(s.school || "").toUpperCase() === q);
     if(exact){
       if(window.currentSchoolId !== exact.schoolId){
@@ -873,8 +878,12 @@ function onSchoolNameInput(){
   }
 
 
-  window.currentSchoolId = "";
-  checkSchoolBalanceFlag("");
+  if(isDecember()){
+    decReleaseSchoolLinkIfChanged();   // keeps a tapped school linked while it still matches
+  } else {
+    window.currentSchoolId = "";
+    checkSchoolBalanceFlag("");
+  }
 
   // SLOW PATH FALLBACK: cache not ready — ask backend directly (debounced)
   if(!window.repSchoolHistoryLoading){
@@ -1000,8 +1009,8 @@ async function checkSchoolBalanceFlag(schoolId){
     });
 
     let data = await res.json();
-
     window._balanceCheckCache[schoolId] = data;
+    if(isDecember() && window.currentSchoolId !== schoolId) return;   // rep moved on to a different school
     applyBalanceResult_(flagEl, data);
 
     // school identity/balance just (re)resolved — any earlier
@@ -1039,6 +1048,40 @@ function showBalanceWarningModal(school, amount, examLabel){
   });
 }
 
+
+function decNormText_(v){ return String(v == null ? "" : v).toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim(); }
+function decPhoneKey_(v){ const d = String(v || "").replace(/\D/g, ""); return d.length >= 9 ? d.slice(-9) : d; }
+function decRegionKey_(v){ const r = decNormText_(v); return r === "UNKNOWN" ? "" : r; }
+function decSame_(saved, typed){ return !saved || !typed || saved === typed; }
+
+function decLinkedSchoolStillMatches(){
+  if(!window.confirmedSchoolId) return false;
+  if(decNormText_(document.getElementById("schoolName").value) !== decNormText_(window.confirmedSchoolName)) return false;
+  const d = window.confirmedSchoolDetails;
+  if(!d) return true;
+  return decSame_(decNormText_(d.location), decNormText_(document.getElementById("location").value)) &&
+         decSame_(decPhoneKey_(d.phone),    decPhoneKey_(document.getElementById("phone").value)) &&
+         decSame_(decRegionKey_(d.region),  decRegionKey_(document.getElementById("region").value));
+}
+
+function decReleaseSchoolLinkIfChanged(){
+  if(!isDecember() || !window.confirmedSchoolId) return;
+  if(decLinkedSchoolStillMatches()) return;
+  window.confirmedSchoolId = "";
+  window.confirmedSchoolName = "";
+  window.confirmedSchoolDetails = null;
+  window.currentSchoolId = "";
+  window.schoolAutofillApplied = false;   // keep everything the rep typed
+  checkSchoolBalanceFlag("");              // hides the "Owes GHS ..." flag
+}
+
+["input", "change"].forEach(function(evt){
+  document.addEventListener(evt, function(e){
+    const id = e.target && e.target.id;
+    if(id === "location" || id === "phone" || id === "region") decReleaseSchoolLinkIfChanged();
+  });
+});
+
 function applySchoolSuggestion(i){
     
 
@@ -1054,9 +1097,9 @@ function applySchoolSuggestion(i){
   document.getElementById("phone").value = s.phone || "";
   window.currentSchoolId = s.schoolId || "";
 
-  
   window.confirmedSchoolId = s.schoolId || "";
   window.confirmedSchoolName = String(s.school || "").trim().toUpperCase();
+  window.confirmedSchoolDetails = { location: s.location || "", phone: s.phone || "", region: s.region || "" };
 
   checkSchoolBalanceFlag(window.currentSchoolId);
 
@@ -1518,8 +1561,8 @@ async function submitEnrollment() {
         languageVal = langParts.join(", ");
     }
 
-    // OUTSTANDING BALANCE — block the first attempt with a responsive
-    // modal warning, let it through on the very next click
+    decReleaseSchoolLinkIfChanged();
+
     if (window.currentSchoolHasBalance && !window.balanceOverrideAcknowledged) {
         await showBalanceWarningModal(
             school,
@@ -1545,7 +1588,8 @@ async function submitEnrollment() {
 
     
     const confirmedSchoolIdToSend =
-        (window.confirmedSchoolId && window.confirmedSchoolName === school.toUpperCase())
+        (window.confirmedSchoolId && window.confirmedSchoolName === school.toUpperCase() &&
+         (!isDecember() || decLinkedSchoolStillMatches()))
             ? window.confirmedSchoolId
             : "";
 
@@ -2052,9 +2096,9 @@ function editSchool(data){
 window.currentSubmissionId = String(data.submissionId || "").trim();
 window.currentSchoolId = data.schoolId || "";
 
-
 window.confirmedSchoolId = data.schoolId || "";
 window.confirmedSchoolName = String(data.school || "").trim().toUpperCase();
+window.confirmedSchoolDetails = { location: data.location || "", phone: data.phone || "", region: data.region || "" };
 
 
 window.currentSubmissionVersion = data.editedTime || data.createdTime || "";
@@ -2123,11 +2167,9 @@ function reloadForm(hideSummary = true){
 
 setFormMode(false);
 
-// Assign the ID for this NEW enrollment attempt right now, once.
-// submitEnrollment() will reuse it on every retry, so a dropped
-// connection after a successful write can never create a duplicate row.
+
 window.currentSubmissionId = generateSubmissionId();
-window.currentSubmissionVersion = null; // no prior version — this is a fresh row
+window.currentSubmissionVersion = null; 
 window.schoolAutofillApplied = false;
 window.currentSchoolHasBalance = false;
 window.currentSchoolBalanceAmount = 0;
@@ -2135,6 +2177,8 @@ window.currentSchoolBalanceExamLabel = "";
 window.balanceOverrideAcknowledged = false;
 window.confirmedSchoolId = "";
 window.confirmedSchoolName = "";
+window.confirmedSchoolDetails = null;
+window.currentSchoolId = "";
 
 /* CLEAR FORM */
 document.querySelectorAll("#formArea input").forEach(i=>i.value="");
