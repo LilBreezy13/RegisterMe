@@ -1643,8 +1643,14 @@ async function submitEnrollment() {
             return;
         }
 
-        // ACCOUNT DEACTIVATED — distinct from a plain expiry, so the rep
-        // (or whoever's with them) understands why they were logged out.
+        if (data.status === "unauthorized") {
+            forceRelogin("Session expired — nothing was saved. Log in again and re-submit.");
+            btn.disabled = false;
+            btn.innerText = "Submit Enrollment";
+            return;
+        }
+
+    
         if (data.status === "deactivated") {
             forceRelogin("This account has been deactivated. Contact your administrator.");
             btn.disabled = false;
